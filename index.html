@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的交互工具箱</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background-color: #f6f8fa;
+      color: #24292f;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      padding: 16px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: transform 0.1s;
+    }
+    .card:active {
+      transform: scale(0.98);
+      background-color: #f3f4f6;
+    }
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.1rem;
+      color: #0969da;
+    }
+    .card p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: #57606a;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛠️ 我的交互工具箱</h1>
+  <div class="grid">
+    <!-- 第一个交互器入口 -->
+    <a class="card" href="tool1.html">
+      <h3>机构运动仿真器</h3>
+      <p>点击进入全屏交互操作</p>
+    </a>
+  </div>
+</body>
+</html>
