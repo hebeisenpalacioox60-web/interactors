@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基本不等式几何证明与互动探究器 - 人教版高中数学必修一</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for high-fidelity mathematical formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap');
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    .math-font {
+      font-family: 'Noto Serif SC', serif;
+    }
+    /* Smooth transitions for interactive SVG elements */
+    .svg-transition {
+      transition: all 0.15s ease-out;
+    }
+    /* Custom Slider Style */
+    input[type=range] {
+      accent-color: #2563eb;
+    }
+    /* Glow animations */
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    .equality-glow {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- 顶部导航栏 -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 text-white font-bold text-lg">
+          $\sqrt{\cdot}$
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-lg sm:text-xl tracking-tight text-white">基本不等式几何证明与互动探究器</h1>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">人教版必修一</span>
+          </div>
+          <p class="text-xs text-slate-400">数形结合 · 无字证明 (Proofs Without Words) · 新课标核心素养</p>
+        </div>
+      </div>
+      
+      <!-- 预设参数快速选取 -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs text-slate-400 font-medium">典型预设:</span>
+        <button onclick="setPreset(5.0, 5.0)" class="text-xs px-2.5 py-1 rounded-lg bg-emerald-950/60 hover:bg-emerald-800/80 text-emerald-300 border border-emerald-600/40 transition">
+          临界取等 ($a=b$)
+        </button>
+        <button onclick="setPreset(2.0, 8.0)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          经典倍数 ($a=2, b=8$)
+        </button>
+        <button onclick="setPreset(1.0, 9.0)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          悬殊对比 ($a=1, b=9$)
+        </button>
+        <button onclick="setPreset(3.0, 4.0)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          勾股比例 ($a=3, b=4$)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主体内容区域 -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- 左侧区域：几何证明画布与可视化展示 (占 7 列) -->
+    <section class="lg:col-span-7 flex flex-col gap-5">
+      
+      <!-- 模式切换选项卡 (Tabs) -->
+      <div class="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-1">
+        <button id="tab-btn-1" onclick="switchMode(1)" class="flex-1 py-2.5 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-blue-600 text-white shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path></svg>
+          <span>半圆射影定理证明</span>
+        </button>
+        <button id="tab-btn-2" onclick="switchMode(2)" class="flex-1 py-2.5 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-600 hover:bg-slate-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path></svg>
+          <span>赵爽弦图证明</span>
+        </button>
+        <button id="tab-btn-3" onclick="switchMode(3)" class="flex-1 py-2.5 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-600 hover:bg-slate-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span>四级均值不等式链</span>
+        </button>
+      </div>
+
+      <!-- 主交互画布卡片 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative">
+        
+        <!-- 画布顶部说明栏 -->
+        <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div id="mode-header-title" class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+            <span>半圆射影定理几何证明：斜边大于等于直角边</span>
+          </div>
+          <div id="equality-badge" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+            <span>$a \ne b$ (未取等)</span>
+          </div>
+        </div>
+
+        <!-- SVG 绘图交互区 -->
+        <div class="w-full bg-slate-900 p-3 sm:p-5 flex items-center justify-center relative select-none overflow-hidden min-h-[380px]">
+          
+          <!-- 背景微妙网格 -->
+          <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#38bdf8 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+          <!-- 模式一：半圆与射影定理 SVG -->
+          <svg id="svg-mode-1" viewBox="0 0 700 420" class="w-full h-auto max-w-full drop-shadow-xl block">
+            <defs>
+              <!-- 渐变与阴影滤镜 -->
+              <linearGradient id="circleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.03"/>
+              </linearGradient>
+              <linearGradient id="triangleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.25"/>
+              </linearGradient>
+            </defs>
+
+            <!-- 直径基准线与半圆 -->
+            <path id="semicircle-arc" d="M 100 320 A 250 250 0 0 1 600 320 Z" fill="url(#circleGrad)" stroke="#64748b" stroke-width="2" stroke-dasharray="6,4" />
+            
+            <!-- 直角三角形 OCD 填充面 -->
+            <polygon id="triangle-ocd" points="350,320 350,320 350,70" fill="url(#triangleGrad)" stroke="#38bdf8" stroke-width="2" class="svg-transition" />
+            
+            <!-- 直径 AB -->
+            <line x1="100" y1="320" x2="600" y2="320" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" />
+            
+            <!-- 分界段 AD (长 a) 与 DB (长 b) 色彩高亮 -->
+            <line id="seg-ad" x1="100" y1="320" x2="350" y2="320" stroke="#38bdf8" stroke-width="4.5" stroke-linecap="round" class="svg-transition" />
+            <line id="seg-db" x1="350" y1="320" x2="600" y2="320" stroke="#818cf8" stroke-width="4.5" stroke-linecap="round" class="svg-transition" />
+            
+            <!-- 弦 AC 与 BC 虚线 (直角三角形 ACB) -->
+            <line id="chord-ac" x1="100" y1="320" x2="350" y2="70" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" class="svg-transition" />
+            <line id="chord-bc" x1="600" y1="320" x2="350" y2="70" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,4" class="svg-transition" />
+            
+            <!-- 垂线 CD (长 sqrt(ab)) -->
+            <line id="seg-cd" x1="350" y1="320" x2="350" y2="70" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" class="svg-transition" />
+            
+            <!-- 半径 OC (长 (a+b)/2) -->
+            <line id="seg-oc" x1="350" y1="320" x2="350" y2="70" stroke="#ec4899" stroke-width="3" stroke-dasharray="6,3" stroke-linecap="round" class="svg-transition" />
+
+            <!-- 直角符号 at D -->
+            <path id="right-angle-d" d="M 350 305 L 365 305 L 365 320" fill="none" stroke="#f59e0b" stroke-width="1.5" class="svg-transition" />
+
+            <!-- 关键节点 -->
+            <circle cx="100" cy="320" r="5" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
+            <circle cx="600" cy="320" r="5" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
+            <circle id="point-o" cx="350" cy="320" r="5" fill="#f8fafc" stroke="#ec4899" stroke-width="2" />
+            <circle id="point-d" cx="350" cy="320" r="5.5" fill="#f59e0b" stroke="#ffffff" stroke-width="2" class="svg-transition" />
+            <circle id="point-c" cx="350" cy="70" r="6" fill="#38bdf8" stroke="#ffffff" stroke-width="2" class="svg-transition" />
+
+            <!-- 几何顶点与边长文字标签 (带半透明背景牌) -->
+            <!-- 顶点 A, B, O, D, C -->
+            <text x="85" y="345" fill="#cbd5e1" font-size="14" font-weight="bold">A</text>
+            <text x="610" y="345" fill="#cbd5e1" font-size="14" font-weight="bold">B</text>
+            <text x="345" y="348" fill="#f472b6" font-size="14" font-weight="bold">O (圆心)</text>
+            <text id="label-d" x="345" y="348" fill="#fbbf24" font-size="14" font-weight="bold" class="svg-transition">D</text>
+            <text id="label-c" x="345" y="52" fill="#38bdf8" font-size="16" font-weight="bold" class="svg-transition">C</text>
+
+            <!-- 边长标注 -->
+            <g id="badge-ad" class="svg-transition">
+              <rect x="180" y="335" width="80" height="24" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
+              <text id="text-ad" x="220" y="351" fill="#38bdf8" font-size="11" font-weight="600" text-anchor="middle">AD = a</text>
+            </g>
+
+            <g id="badge-db" class="svg-transition">
+              <rect x="440" y="335" width="80" height="24" rx="6" fill="#0f172a" stroke="#818cf8" stroke-width="1"/>
+              <text id="text-db" x="480" y="351" fill="#818cf8" font-size="11" font-weight="600" text-anchor="middle">DB = b</text>
+            </g>
+
+            <g id="badge-cd" class="svg-transition">
+              <rect id="rect-cd" x="365" y="180" width="130" height="28" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5"/>
+              <text id="text-cd" x="430" y="198" fill="#fbbf24" font-size="12" font-weight="700" text-anchor="middle">CD = √(ab)</text>
+            </g>
+
+            <g id="badge-oc" class="svg-transition">
+              <rect id="rect-oc" x="210" y="160" width="135" height="28" rx="6" fill="#0f172a" stroke="#ec4899" stroke-width="1.5"/>
+              <text id="text-oc" x="277" y="178" fill="#f472b6" font-size="12" font-weight="700" text-anchor="middle">半径 OC = (a+b)/2</text>
+            </g>
+          </svg>
+
+          <!-- 模式二：赵爽弦图 SVG -->
+          <svg id="svg-mode-2" viewBox="0 0 700 420" class="w-full h-auto max-w-full drop-shadow-xl hidden">
+            <!-- 外部说明 -->
+            <rect x="40" y="30" width="620" height="360" rx="16" fill="#0f172a" stroke="#334155" stroke-width="1.5" />
+            
+            <!-- 4 个全等直角三角形与中心黄色小正方形 -->
+            <g id="zhao-shuang-group" transform="translate(350, 210)">
+              <!-- 4个直角三角形 -->
+              <polygon id="zs-tri-0" points="0,0 0,0 0,0" fill="#3b82f6" fill-opacity="0.75" stroke="#93c5fd" stroke-width="1.5" />
+              <polygon id="zs-tri-1" points="0,0 0,0 0,0" fill="#2563eb" fill-opacity="0.75" stroke="#93c5fd" stroke-width="1.5" />
+              <polygon id="zs-tri-2" points="0,0 0,0 0,0" fill="#1d4ed8" fill-opacity="0.75" stroke="#93c5fd" stroke-width="1.5" />
+              <polygon id="zs-tri-3" points="0,0 0,0 0,0" fill="#1e40af" fill-opacity="0.75" stroke="#93c5fd" stroke-width="1.5" />
+
+              <!-- 中心“黄实”小正方形: 面积 (a-b)^2 -->
+              <polygon id="zs-center-sq" points="0,0 0,0 0,0 0,0" fill="#f59e0b" fill-opacity="0.9" stroke="#fef3c7" stroke-width="2" />
+
+              <!-- 大正方形外轮廓 (弦方: 面积 a^2+b^2) -->
+              <polygon id="zs-outer-sq" points="0,0 0,0 0,0 0,0" fill="none" stroke="#f8fafc" stroke-width="2.5" stroke-dasharray="8,4" />
+
+              <!-- 动态面积中心标签 -->
+              <text id="zs-center-text" x="0" y="5" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">中黄实 (a-b)²</text>
+            </g>
+
+            <!-- 弦图图例说明 -->
+            <g transform="translate(60, 50)">
+              <rect width="180" height="100" rx="8" fill="#1e293b" fill-opacity="0.9" stroke="#475569" stroke-width="1" />
+              <circle cx="20" cy="25" r="6" fill="#3b82f6" />
+              <text x="35" y="29" fill="#e2e8f0" font-size="12">4个朱实 (勾股三角形)</text>
+              
+              <circle cx="20" cy="55" r="6" fill="#f59e0b" />
+              <text x="35" y="59" fill="#e2e8f0" font-size="12">中黄实 (小正方形)</text>
+
+              <line x1="14" y1="83" x2="26" y2="83" stroke="#f8fafc" stroke-width="2" stroke-dasharray="3,2" />
+              <text x="35" y="87" fill="#e2e8f0" font-size="12">外大正方形 (弦方)</text>
+            </g>
+          </svg>
+
+          <!-- 模式三：均值不等式链全景对比 SVG -->
+          <svg id="svg-mode-3" viewBox="0 0 700 420" class="w-full h-auto max-w-full drop-shadow-xl hidden">
+            <!-- 柱状图对比背景 -->
+            <rect x="40" y="20" width="620" height="380" rx="16" fill="#0f172a" stroke="#334155" stroke-width="1.5" />
+            
+            <!-- 4根柱状对比体 -->
+            <!-- 1. 调和平均数 H -->
+            <g transform="translate(110, 340)">
+              <rect id="bar-h" x="-35" y="-100" width="70" height="100" rx="6" fill="#a855f7" fill-opacity="0.85" stroke="#e9d5ff" stroke-width="1.5" />
+              <text x="0" y="25" fill="#e9d5ff" font-size="13" font-weight="bold" text-anchor="middle">调和平均 (H)</text>
+              <text id="val-bar-h" x="0" y="-110" fill="#d8b4fe" font-size="14" font-weight="bold" text-anchor="middle">0.00</text>
+            </g>
+
+            <!-- 关系符号 1 -->
+            <text id="ineq-sym-1" x="205" y="240" fill="#94a3b8" font-size="28" font-weight="bold" text-anchor="middle">≤</text>
+
+            <!-- 2. 几何平均数 G -->
+            <g transform="translate(270, 340)">
+              <rect id="bar-g" x="-35" y="-140" width="70" height="140" rx="6" fill="#f59e0b" fill-opacity="0.85" stroke="#fef3c7" stroke-width="1.5" />
+              <text x="0" y="25" fill="#fef3c7" font-size="13" font-weight="bold" text-anchor="middle">几何平均 (G)</text>
+              <text id="val-bar-g" x="0" y="-150" fill="#fbbf24" font-size="14" font-weight="bold" text-anchor="middle">0.00</text>
+            </g>
+
+            <!-- 关系符号 2 (核心人教版基本不等式) -->
+            <g transform="translate(365, 230)">
+              <circle cx="0" cy="0" r="18" fill="#1e3a8a" stroke="#60a5fa" stroke-width="2"/>
+              <text id="ineq-sym-2" x="0" y="8" fill="#60a5fa" font-size="22" font-weight="bold" text-anchor="middle">≤</text>
+              <text x="0" y="32" fill="#93c5fd" font-size="10" font-weight="bold" text-anchor="middle">教材重点</text>
+            </g>
+
+            <!-- 3. 算术平均数 A -->
+            <g transform="translate(460, 340)">
+              <rect id="bar-a" x="-35" y="-180" width="70" height="180" rx="6" fill="#3b82f6" fill-opacity="0.85" stroke="#bfdbfe" stroke-width="1.5" />
+              <text x="0" y="25" fill="#bfdbfe" font-size="13" font-weight="bold" text-anchor="middle">算术平均 (A)</text>
+              <text id="val-bar-a" x="0" y="-190" fill="#60a5fa" font-size="14" font-weight="bold" text-anchor="middle">0.00</text>
+            </g>
+
+            <!-- 关系符号 3 -->
+            <text id="ineq-sym-3" x="535" y="240" fill="#94a3b8" font-size="28" font-weight="bold" text-anchor="middle">≤</text>
+
+            <!-- 4. 平方平均数 Q (均方根 RMS) -->
+            <g transform="translate(600, 340)">
+              <rect id="bar-q" x="-30" y="-220" width="60" height="220" rx="6" fill="#06b6d4" fill-opacity="0.85" stroke="#cffafe" stroke-width="1.5" />
+              <text x="0" y="25" fill="#cffafe" font-size="12" font-weight="bold" text-anchor="middle">平方平均 (Q)</text>
+              <text id="val-bar-q" x="0" y="-230" fill="#22d3ee" font-size="14" font-weight="bold" text-anchor="middle">0.00</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- 画布底部动态推导与几何原理解析 -->
+        <div class="p-4 bg-white border-t border-slate-200">
+          <div id="proof-text-container" class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <!-- 动态注入数学说明 -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右侧区域：交互控制面板、实时数值看板与高考考点卡片 (占 5 列) -->
+    <section class="lg:col-span-5 flex flex-col gap-5">
+      
+      <!-- 参数调节与动画播放控制卡片 -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+            <span>正数参数实时控制</span>
+          </h2>
+          <span class="text-xs text-slate-500 font-mono">定义域: $a, b \in (0, 10]$</span>
+        </div>
+
+        <!-- 调节滑块 a -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-sm">
+            <span class="font-medium text-slate-700 flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>
+              参数 $a$ (左段/直角边):
+            </span>
+            <span id="slider-a-val" class="font-bold font-mono text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">2.0</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="adjustVal('a', -0.5)" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center transition active:scale-95">-</button>
+            <input id="slider-a" type="range" min="0.5" max="10.0" step="0.1" value="2.0" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+            <button onclick="adjustVal('a', 0.5)" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center transition active:scale-95">+</button>
+          </div>
+        </div>
+
+        <!-- 调节滑块 b -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-sm">
+            <span class="font-medium text-slate-700 flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span>
+              参数 $b$ (右段/直角边):
+            </span>
+            <span id="slider-b-val" class="font-bold font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">8.0</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="adjustVal('b', -0.5)" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center transition active:scale-95">-</button>
+            <input id="slider-b" type="range" min="0.5" max="10.0" step="0.1" value="8.0" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+            <button onclick="adjustVal('b', 0.5)" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center transition active:scale-95">+</button>
+          </div>
+        </div>
+
+        <!-- 动态逼近演示按钮 -->
+        <div class="pt-2 flex gap-2">
+          <button id="btn-animate" onclick="toggleAnimation()" class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 transition active:scale-98">
+            <svg id="icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+            <span id="text-play">一键播放：动态逼近至等号成立 ($a \to b$)</span>
+          </button>
+          <button onclick="exchangeAB()" title="对调 a 与 b" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition" aria-label="对调">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 实时运算指标与差值看板 -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3">
+        <h2 class="text-base font-bold text-slate-800 flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            <span>数值计算与不等关系看板</span>
+          </span>
+          <span id="math-relation-badge" class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700 font-mono">A ≥ G</span>
+        </h2>
+
+        <!-- 网格数值展示 -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col">
+            <span class="text-xs text-slate-500 font-medium">算术平均数 $\frac{a+b}{2}$</span>
+            <span id="display-val-a" class="text-xl font-black text-blue-600 font-mono mt-1">5.00</span>
+            <span class="text-[11px] text-slate-400 mt-0.5">半圆半径 $OC$</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col">
+            <span class="text-xs text-slate-500 font-medium">几何平均数 $\sqrt{ab}$</span>
+            <span id="display-val-g" class="text-xl font-black text-amber-600 font-mono mt-1">4.00</span>
+            <span class="text-[11px] text-slate-400 mt-0.5">垂直半弦 $CD$</span>
+          </div>
+        </div>
+
+        <!-- 差值与相对误差条 -->
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col gap-2">
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-600 font-medium">富余差值 $\Delta = \frac{a+b}{2} - \sqrt{ab}$ :</span>
+            <span id="display-diff" class="font-bold font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">1.000</span>
+          </div>
+          <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden flex">
+            <div id="diff-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-200" style="width: 20%;"></div>
+          </div>
+          <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>几何高度差 ($OC - CD$)</span>
+            <span id="diff-formula">$\frac{(\sqrt{a}-\sqrt{b})^2}{2} \ge 0$</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 人教版必修一·高考得分法则卡片：“一正、二定、三相等” -->
+      <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-md border border-slate-800 flex flex-col gap-3.5">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <h3 class="font-bold text-sm text-white">中国高中解题三原则：“一正、二定、三相等”</h3>
+          </div>
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider">答题采分点</span>
+        </div>
+
+        <div class="space-y-2.5 text-xs">
+          <!-- 1. 一正 -->
+          <div class="flex items-start gap-2.5 p-2 rounded-lg bg-slate-800/60 border border-slate-700/60">
+            <div id="check-icon-1" class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">✓</div>
+            <div>
+              <span class="font-bold text-slate-200">一正：各项均为正数</span>
+              <p class="text-slate-400 text-[11px] mt-0.5">当前 $a > 0$ 且 $b > 0$ 完全成立。若含负数，必须先提取负号转化。</p>
+            </div>
+          </div>
+
+          <!-- 2. 二定 -->
+          <div class="flex items-start gap-2.5 p-2 rounded-lg bg-slate-800/60 border border-slate-700/60">
+            <div class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">★</div>
+            <div>
+              <span class="font-bold text-slate-200">二定：积定和最小 / 和定积最大</span>
+              <p id="check-ding-desc" class="text-slate-400 text-[11px] mt-0.5">
+                若乘积定为 $16.0$，则和的最小值为 $8.0$；若和定为 $10.0$，则乘积的最大值为 $25.0$。
+              </p>
+            </div>
+          </div>
+
+          <!-- 3. 三相等 -->
+          <div class="flex items-start gap-2.5 p-2 rounded-lg bg-slate-800/60 border border-slate-700/60">
+            <div id="check-icon-3" class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">!</div>
+            <div>
+              <span class="font-bold text-slate-200">三相等：等号可取条件检验 ($a = b$)</span>
+              <p id="check-equal-desc" class="text-slate-400 text-[11px] mt-0.5">
+                当前 $|a - b| = 6.0 \ne 0$。解答题中未交代等号成立条件直接扣 1 分！
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- 底部页脚说明 -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-6">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 space-y-1">
+      <p>中国人教版高中数学必修第一册 · 第二章 等式与不等式 · 第二节 基本不等式</p>
+      <p class="text-slate-400 font-mono text-[11px]">Designed for high school mathematics exploration & visual comprehension.</p>
+    </div>
+  </footer>
+
+  <!-- 核心逻辑脚本 -->
+  <script>
+    // 状态管理
+    const state = {
+      a: 2.0,
+      b: 8.0,
+      mode: 1, // 1: 半圆射影定理, 2: 赵爽弦图, 3: 四级不等式链
+      isAnimating: false,
+      animReqId: null,
+      animStartTime: 0,
+      animStartA: 2.0,
+      animTargetA: 8.0
+    };
+
+    // DOM 元素缓存
+    const sliderA = document.getElementById('slider-a');
+    const sliderB = document.getElementById('slider-b');
+    const sliderAVal = document.getElementById('slider-a-val');
+    const sliderBVal = document.getElementById('slider-b-val');
+
+    // 初始化运行
+    window.addEventListener('DOMContentLoaded', () => {
+      initEventListeners();
+      updateAll();
+    });
+
+    function initEventListeners() {
+      sliderA.addEventListener('input', (e) => {
+        state.a = parseFloat(e.target.value);
+        if (state.isAnimating) stopAnimation();
+        updateAll();
+      });
+
+      sliderB.addEventListener('input', (e) => {
+        state.b = parseFloat(e.target.value);
+        if (state.isAnimating) stopAnimation();
+        updateAll();
+      });
+    }
+
+    // 模式切换
+    function switchMode(newMode) {
+      state.mode = newMode;
+      
+      // 更新 Tabs 按钮样式
+      for (let i = 1; i <= 3; i++) {
+        const btn = document.getElementById(`tab-btn-${i}`);
+        const svg = document.getElementById(`svg-mode-${i}`);
+        if (i === newMode) {
+          btn.className = "flex-1 py-2.5 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-blue-600 text-white shadow-sm";
+          svg.classList.remove('hidden');
+          svg.classList.add('block');
+        } else {
+          btn.className = "flex-1 py-2.5 px-3 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-600 hover:bg-slate-100";
+          svg.classList.add('hidden');
+          svg.classList.remove('block');
+        }
+      }
+
+      // 更新顶部标题
+      const headerTitle = document.getElementById('mode-header-title');
+      if (newMode === 1) {
+        headerTitle.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span><span>半圆射影定理几何证明：斜边大于等于直角边</span>`;
+      } else if (newMode === 2) {
+        headerTitle.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span>赵爽弦图无字证明：大正方形面积 ≥ 4个三角形面积</span>`;
+      } else {
+        headerTitle.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span><span>均值不等式链全景对比：调和 ≤ 几何 ≤ 算术 ≤ 平方平均</span>`;
+      }
+
+      updateAll();
+    }
+
+    // 预设值快速设定
+    function setPreset(a, b) {
+      if (state.isAnimating) stopAnimation();
+      state.a = a;
+      state.b = b;
+      sliderA.value = a;
+      sliderB.value = b;
+      updateAll();
+    }
+
+    // 步进微调
+    function adjustVal(variable, step) {
+      if (state.isAnimating) stopAnimation();
+      if (variable === 'a') {
+        state.a = Math.min(10.0, Math.max(0.5, parseFloat((state.a + step).toFixed(1))));
+        sliderA.value = state.a;
+      } else {
+        state.b = Math.min(10.0, Math.max(0.5, parseFloat((state.b + step).toFixed(1))));
+        sliderB.value = state.b;
+      }
+      updateAll();
+    }
+
+    // 对调 a 与 b
+    function exchangeAB() {
+      if (state.isAnimating) stopAnimation();
+      const temp = state.a;
+      state.a = state.b;
+      state.b = temp;
+      sliderA.value = state.a;
+      sliderB.value = state.b;
+      updateAll();
+    }
+
+    // 主更新函数
+    function updateAll() {
+      const a = state.a;
+      const b = state.b;
+
+      // 更新滑块显式读数
+      sliderAVal.textContent = a.toFixed(1);
+      sliderBVal.textContent = b.toFixed(1);
+
+      // 计算均值数学核心量
+      const A = (a + b) / 2; // 算术平均
+      const G = Math.sqrt(a * b); // 几何平均
+      const H = (2 * a * b) / (a + b); // 调和平均
+      const Q = Math.sqrt((a * a + b * b) / 2); // 平方平均 (RMS)
+      const diff = A - G;
+      const isEqual = Math.abs(a - b) < 0.05;
+
+      // 更新看板数据
+      document.getElementById('display-val-a').textContent = A.toFixed(2);
+      document.getElementById('display-val-g').textContent = G.toFixed(2);
+      document.getElementById('display-diff').textContent = diff.toFixed(3);
+      
+      const maxPossibleDiff = 5.0; // 粗略归一化标尺
+      const diffPercent = Math.min(100, Math.max(0, (diff / maxPossibleDiff) * 100));
+      document.getElementById('diff-bar').style.width = `${diffPercent}%`;
+
+      // 等号状态徽章
+      const equalityBadge = document.getElementById('equality-badge');
+      if (isEqual) {
+        equalityBadge.className = "text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 equality-glow";
+        equalityBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>a = b (等号成立!)</span>`;
+      } else {
+        equalityBadge.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1.5";
+        equalityBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span><span>a ≠ b (未取等)</span>`;
+      }
+
+      // 考点三原则更新
+      updateCheckCards(a, b, A, G, diff, isEqual);
+
+      // 更新各自 SVG 几何图形
+      if (state.mode === 1) {
+        renderMode1(a, b, A, G, isEqual);
+      } else if (state.mode === 2) {
+        renderMode2(a, b, isEqual);
+      } else if (state.mode === 3) {
+        renderMode3(H, G, A, Q, isEqual);
+      }
+
+      // 更新文字推导
+      renderProofText(a, b, A, G, isEqual);
+
+      // 触发 KaTeX 公式重绘
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // 模式一渲染：半圆与射影定理
+    function renderMode1(a, b, A, G, isEqual) {
+      const totalLen = a + b;
+      const ratioA = a / totalLen;
+
+      // 坐标映射：直径长 500px，从 x=100 到 x=600，基线 y=320
+      const startX = 100;
+      const endX = 600;
+      const diameter = 500;
+      const radius = 250;
+      const centerY = 320;
+      const centerX = 350;
+
+      const dx = startX + diameter * ratioA;
+      const dy = centerY;
+
+      // 点 C 纵坐标: 圆方程 (x - 350)^2 + (y - 320)^2 = 250^2
+      const distFromCenter = Math.abs(dx - centerX);
+      const cy = centerY - Math.sqrt(Math.max(0, radius * radius - distFromCenter * distFromCenter));
+
+      // 更新几何图元
+      const segAd = document.getElementById('seg-ad');
+      const segDb = document.getElementById('seg-db');
+      const segCd = document.getElementById('seg-cd');
+      const segOc = document.getElementById('seg-oc');
+      const chordAc = document.getElementById('chord-ac');
+      const chordBc = document.getElementById('chord-bc');
+      const triOcd = document.getElementById('triangle-ocd');
+      const ptD = document.getElementById('point-d');
+      const ptC = document.getElementById('point-c');
+      const labelD = document.getElementById('label-d');
+      const labelC = document.getElementById('label-c');
+      const rightAngleD = document.getElementById('right-angle-d');
+
+      segAd.setAttribute('x2', dx);
+      segDb.setAttribute('x1', dx);
+      segCd.setAttribute('x1', dx);
+      segCd.setAttribute('x2', dx);
+      segCd.setAttribute('y2', cy);
+
+      segOc.setAttribute('x2', dx);
+      segOc.setAttribute('y2', cy);
+
+      chordAc.setAttribute('x2', dx);
+      chordAc.setAttribute('y2', cy);
+      chordBc.setAttribute('x2', dx);
+      chordBc.setAttribute('y2', cy);
+
+      triOcd.setAttribute('points', `${centerX},${centerY} ${dx},${centerY} ${dx},${cy}`);
+
+      ptD.setAttribute('cx', dx);
+      ptC.setAttribute('cx', dx);
+      ptC.setAttribute('cy', cy);
+
+      labelD.setAttribute('x', dx - 6);
+      labelC.setAttribute('x', dx - 6);
+      labelC.setAttribute('y', cy - 18);
+
+      // 直角标志符号
+      if (!isEqual) {
+        const sign = dx > centerX ? -1 : 1;
+        rightAngleD.setAttribute('d', `M ${dx + sign * 14} ${centerY} L ${dx + sign * 14} ${centerY - 14} L ${dx} ${centerY - 14}`);
+        rightAngleD.style.display = 'block';
+      } else {
+        rightAngleD.style.display = 'none';
+      }
+
+      // 数值标签位置自适应
+      document.getElementById('badge-ad').setAttribute('transform', `translate(${(startX + dx) / 2 - 220}, 0)`);
+      document.getElementById('badge-db').setAttribute('transform', `translate(${(dx + endX) / 2 - 480}, 0)`);
+      document.getElementById('text-ad').textContent = `AD = a (${a.toFixed(1)})`;
+      document.getElementById('text-db').textContent = `DB = b (${b.toFixed(1)})`;
+
+      const rectCd = document.getElementById('rect-cd');
+      const textCd = document.getElementById('text-cd');
+      const cdOffset = dx > centerX ? -150 : 20;
+      rectCd.setAttribute('x', dx + cdOffset);
+      rectCd.setAttribute('y', (centerY + cy) / 2 - 14);
+      textCd.setAttribute('x', dx + cdOffset + 65);
+      textCd.setAttribute('y', (centerY + cy) / 2 + 5);
+      textCd.textContent = `CD = √(ab) = ${G.toFixed(2)}`;
+
+      const rectOc = document.getElementById('rect-oc');
+      const textOc = document.getElementById('text-oc');
+      rectOc.setAttribute('x', Math.min(centerX, dx) - 50);
+      rectOc.setAttribute('y', Math.max(70, (centerY + cy) / 2 - 50));
+      textOc.setAttribute('x', Math.min(centerX, dx) - 50 + 67);
+      textOc.setAttribute('y', Math.max(70, (centerY + cy) / 2 - 50) + 18);
+      textOc.textContent = `OC = (a+b)/2 = ${A.toFixed(2)}`;
+    }
+
+    // 模式二渲染：赵爽弦图 (ICM 2002 会标经典构型)
+    function renderMode2(a, b, isEqual) {
+      // 保持大外正方形边长固定为 260px，观察内部 4个三角形和中心黄色小正方形的面积消长
+      const cSide = 250;
+      const hypotenuse = Math.sqrt(a * a + b * b);
+      const scale = cSide / hypotenuse;
+      const A = a * scale;
+      const B = b * scale;
+
+      // 顶点推算：大外正方形顶点围绕原点 (0,0)
+      const halfC = cSide / 2;
+      const P0 = { x: -halfC, y: -halfC };
+      const P1 = { x: halfC, y: -halfC };
+      const P2 = { x: halfC, y: halfC };
+      const P3 = { x: -halfC, y: halfC };
+
+      // 直角三角形四个直角顶点 Q0, Q1, Q2, Q3
+      // 由向量投影关系：沿底边步进 B*cosθ 与 A*sinθ
+      const cosTheta = B / cSide;
+      const sinTheta = A / cSide;
+
+      const Q0 = { x: P0.x + B * cosTheta, y: P0.y + B * sinTheta };
+      const Q1 = { x: P1.x - B * sinTheta, y: P1.y + B * cosTheta };
+      const Q2 = { x: P2.x - B * cosTheta, y: P2.y - B * sinTheta };
+      const Q3 = { x: P3.x + B * sinTheta, y: P3.y - B * cosTheta };
+
+      // 4个直角三角形
+      document.getElementById('zs-tri-0').setAttribute('points', `${P0.x},${P0.y} ${P1.x},${P1.y} ${Q0.x},${Q0.y}`);
+      document.getElementById('zs-tri-1').setAttribute('points', `${P1.x},${P1.y} ${P2.x},${P2.y} ${Q1.x},${Q1.y}`);
+      document.getElementById('zs-tri-2').setAttribute('points', `${P2.x},${P2.y} ${P3.x},${P3.y} ${Q2.x},${Q2.y}`);
+      document.getElementById('zs-tri-3').setAttribute('points', `${P3.x},${P3.y} ${P0.x},${P0.y} ${Q3.x},${Q3.y}`);
+
+      // 中心小正方形与外边框
+      const centerSq = document.getElementById('zs-center-sq');
+      const centerText = document.getElementById('zs-center-text');
+      
+      centerSq.setAttribute('points', `${Q0.x},${Q0.y} ${Q1.x},${Q1.y} ${Q2.x},${Q2.y} ${Q3.x},${Q3.y}`);
+      document.getElementById('zs-outer-sq').setAttribute('points', `${P0.x},${P0.y} ${P1.x},${P1.y} ${P2.x},${P2.y} ${P3.x},${P3.y}`);
+
+      const diffVal = Math.abs(a - b);
+      if (isEqual) {
+        centerSq.setAttribute('fill-opacity', '0.0');
+        centerText.textContent = "中黄实面积 = 0 (无缝拼接)";
+        centerText.setAttribute('fill', '#34d399');
+      } else {
+        centerSq.setAttribute('fill-opacity', '0.9');
+        centerText.textContent = `中黄实 (a-b)² = ${(diffVal * diffVal).toFixed(1)}`;
+        centerText.setAttribute('fill', '#ffffff');
+      }
+    }
+
+    // 模式三渲染：均值不等式链柱状图
+    function renderMode3(H, G, A, Q, isEqual) {
+      // 归一化高度，最大设为 10.0 对应 240px
+      const scaleH = 24; 
+      const hH = Math.max(10, H * scaleH);
+      const hG = Math.max(10, G * scaleH);
+      const hA = Math.max(10, A * scaleH);
+      const hQ = Math.max(10, Q * scaleH);
+
+      const barH = document.getElementById('bar-h');
+      const barG = document.getElementById('bar-g');
+      const barA = document.getElementById('bar-a');
+      const barQ = document.getElementById('bar-q');
+
+      barH.setAttribute('height', hH);
+      barH.setAttribute('y', -hH);
+      document.getElementById('val-bar-h').textContent = H.toFixed(2);
+      document.getElementById('val-bar-h').setAttribute('y', -hH - 10);
+
+      barG.setAttribute('height', hG);
+      barG.setAttribute('y', -hG);
+      document.getElementById('val-bar-g').textContent = G.toFixed(2);
+      document.getElementById('val-bar-g').setAttribute('y', -hG - 10);
+
+      barA.setAttribute('height', hA);
+      barA.setAttribute('y', -hA);
+      document.getElementById('val-bar-a').textContent = A.toFixed(2);
+      document.getElementById('val-bar-a').setAttribute('y', -hA - 10);
+
+      barQ.setAttribute('height', hQ);
+      barQ.setAttribute('y', -hQ);
+      document.getElementById('val-bar-q').textContent = Q.toFixed(2);
+      document.getElementById('val-bar-q').setAttribute('y', -hQ - 10);
+
+      // 等号标志指示器
+      const sym1 = document.getElementById('ineq-sym-1');
+      const sym2 = document.getElementById('ineq-sym-2');
+      const sym3 = document.getElementById('ineq-sym-3');
+
+      if (isEqual) {
+        sym1.textContent = '=';
+        sym1.setAttribute('fill', '#34d399');
+        sym2.textContent = '=';
+        sym2.setAttribute('fill', '#34d399');
+        sym3.textContent = '=';
+        sym3.setAttribute('fill', '#34d399');
+      } else {
+        sym1.textContent = '<';
+        sym1.setAttribute('fill', '#94a3b8');
+        sym2.textContent = '<';
+        sym2.setAttribute('fill', '#60a5fa');
+        sym3.textContent = '<';
+        sym3.setAttribute('fill', '#94a3b8');
+      }
+    }
+
+    // 考点三原则卡片信息刷新
+    function updateCheckCards(a, b, A, G, diff, isEqual) {
+      const pDing = document.getElementById('check-ding-desc');
+      const prod = (a * b).toFixed(1);
+      const sum = (a + b).toFixed(1);
+      const minSum = (2 * G).toFixed(2);
+      const maxProd = (A * A).toFixed(2);
+      pDing.innerHTML = `若保持积 $ab = ${prod}$ 不变，则和 $a+b$ 的最小值为 $2\\sqrt{ab} = ${minSum}$；若保持和 $a+b = ${sum}$ 不变，则积 $ab$ 的最大值为 $\\frac{(a+b)^2}{4} = ${maxProd}$。`;
+
+      const pEqual = document.getElementById('check-equal-desc');
+      const iconEqual = document.getElementById('check-icon-3');
+      if (isEqual) {
+        pEqual.innerHTML = `<span class="text-emerald-400 font-bold">🎉 条件满足！$a = b = ${a.toFixed(1)}$，此时直角三角形退化为半圆垂径，$CD = OC$，等号精确成立！</span>`;
+        iconEqual.className = "w-5 h-5 rounded-full bg-emerald-500 text-slate-900 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5";
+        iconEqual.textContent = "✓";
+      } else {
+        pEqual.innerHTML = `当前差值 $|a - b| = ${Math.abs(a - b).toFixed(1)} \\ne 0$。斜边严格大于直角边，尚差 $\\Delta = ${diff.toFixed(3)}$。`;
+        iconEqual.className = "w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5";
+        iconEqual.textContent = "!";
+      }
+    }
+
+    // 动态文字解析区域刷新
+    function renderProofText(a, b, A, G, isEqual) {
+      const container = document.getElementById('proof-text-container');
+      
+      if (state.mode === 1) {
+        container.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="font-bold text-blue-700">1. 半径与射影定理</span>
+              <p class="text-xs text-slate-600 mt-1">直径 $AB = a + b$，圆心 $O$ 处半径 $OC = \\frac{a+b}{2}$。由射影定理，$CD^2 = AD \\cdot DB = ab \\implies CD = \\sqrt{ab}$。</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="font-bold text-indigo-700">2. 直角三角形斜边性质</span>
+              <p class="text-xs text-slate-600 mt-1">在 $\\text{Rt}\\triangle OCD$ 中，斜边 $OC$ 恒大于等于直角边 $CD$。即 $OC \\ge CD \\iff \\frac{a+b}{2} \\ge \\sqrt{ab}$。</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="font-bold text-emerald-700">3. 等号成立几何实质</span>
+              <p class="text-xs text-slate-600 mt-1">当且仅当 $D$ 与圆心 $O$ 重合（即 $a = b$）时，$\\text{Rt}\\triangle OCD$ 退化为垂直半径，$CD$ 达到最大值 $R$，等号成立。</p>
+            </div>
+          </div>
+        `;
+      } else if (state.mode === 2) {
+        const prod = (2 * a * b).toFixed(1);
+        const centerArea = Math.pow(a - b, 2).toFixed(1);
+        const outerArea = (a * a + b * b).toFixed(1);
+        container.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="font-bold text-blue-700">1. 弦图代数恒等式</span>
+              <p class="text-xs text-slate-600 mt-1">大正方形面积 = 4个直角三角形面积 + 中间小正方形面积：<br>$$a^2 + b^2 = 2ab + (a-b)^2$$</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="font-bold text-indigo-700">2. 非负性与不等式导出</span>
+              <p class="text-xs text-slate-600 mt-1">因为正方形面积 $(a-b)^2 \\ge 0$，所以 $a^2 + b^2 \\ge 2ab$。代入 $\\sqrt{a}, \\sqrt{b}$ 即得 $\\frac{a+b}{2} \\ge \\sqrt{ab}$。</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <span class="font-bold text-amber-700">3. 动态面积实时核对</span>
+              <p class="text-xs text-slate-600 mt-1">弦方 $c^2 = ${outerArea}$，4个朱实面积之和 $= ${prod}$，中心黄实面积 $= ${centerArea}$。黄实为零时取等。</p>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div>
+              <span class="font-bold text-indigo-900 text-sm">均值不等式链 (Mean Inequality Chain)：</span>
+              <span class="text-xs text-indigo-700 ml-2">$$\\frac{2}{\\frac{1}{a} + \\frac{1}{b}} \\le \\sqrt{ab} \\le \\frac{a+b}{2} \\le \\sqrt{\\frac{a^2+b^2}{2}}$$</span>
+            </div>
+            <div class="text-xs text-indigo-600 bg-white px-3 py-1.5 rounded-lg border border-indigo-200 font-medium">
+              调和平均数 $\\le$ 几何平均数 $\\le$ 算术平均数 $\\le$ 平方平均数 (当且仅当 $a=b$ 时所有等号同步成立)
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 动态逼近平滑动画 (Animation Loop)
+    function toggleAnimation() {
+      if (state.isAnimating) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    }
+
+    function startAnimation() {
+      state.isAnimating = true;
+      document.getElementById('icon-play').innerHTML = `<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>`;
+      document.getElementById('text-play').textContent = "暂停逼近动画";
+      
+      state.animStartTime = performance.now();
+      state.animStartA = state.a;
+      state.animTargetA = state.b;
+
+      // 如果当前已经非常接近 b，则重置为 a=1.0 演示
+      if (Math.abs(state.a - state.b) < 0.2) {
+        state.animStartA = 1.0;
+        state.a = 1.0;
+        sliderA.value = 1.0;
+      }
+
+      function step(currentTime) {
+        const elapsed = (currentTime - state.animStartTime) / 1000;
+        const duration = 2.4; // 2.4 秒平滑过渡
+        const progress = Math.min(1, elapsed / duration);
+        
+        // easeInOutCubic 平滑缓动算法
+        const ease = progress < 0.5 
+          ? 4 * progress * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+        state.a = parseFloat((state.animStartA + (state.animTargetA - state.animStartA) * ease).toFixed(2));
+        sliderA.value = state.a;
+        updateAll();
+
+        if (progress < 1) {
+          state.animReqId = requestAnimationFrame(step);
+        } else {
+          stopAnimation();
+        }
+      }
+
+      state.animReqId = requestAnimationFrame(step);
+    }
+
+    function stopAnimation() {
+      state.isAnimating = false;
+      if (state.animReqId) {
+        cancelAnimationFrame(state.animReqId);
+        state.animReqId = null;
+      }
+      document.getElementById('icon-play').innerHTML = `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>`;
+      document.getElementById('text-play').textContent = "一键播放：动态逼近至等号成立 ($a \\to b$)";
+    }
+  </script>
+</body>
+</html>
