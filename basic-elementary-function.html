@@ -1,0 +1,3726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>函数性质观察与几何作图实验台</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            lab: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    input, textarea, .selectable-text {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f8fafc;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    /* Range Slider Styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #1d4ed8;
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .module-card {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans h-screen w-screen overflow-hidden flex flex-col">
+
+  <!-- Top Header Bar -->
+  <header class="h-13 bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between shrink-0 z-30 shadow-sm">
+    <div class="flex items-center gap-3">
+      <button id="toggleSidebarBtn" class="p-2 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition-colors" title="展开/收起实验控制面板">
+        <i class="fa-solid fa-bars-staggered text-base"></i>
+      </button>
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm">
+          <i class="fa-solid fa-square-root-variable text-sm"></i>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            函数性质观察与几何作图实验台
+            <span class="hidden md:inline-block text-[11px] font-medium px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full border border-blue-200">Multi-Function Lab</span>
+          </h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Function Badge in Header -->
+    <div class="hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3.5 py-1.5 rounded-xl">
+      <span class="text-xs font-semibold text-slate-400">焦点函数</span>
+      <span id="headerFuncDisplay" class="font-mono text-sm font-semibold text-blue-700">f₁(x) = x^2 - 2*x - 3</span>
+      <span class="text-slate-300">|</span>
+      <span id="headerVisibleCountBadge" class="text-xs font-medium px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">已显示 2 个函数</span>
+      <span id="headerParityBadge" class="text-xs font-medium px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">非奇非偶</span>
+    </div>
+
+    <!-- Right Quick Actions -->
+    <div class="flex items-center gap-2">
+      <button id="headerMonotonicBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all">
+        <i class="fa-solid fa-arrow-trend-up"></i>
+        <span class="hidden sm:inline">单调性图上标注:</span>
+        <span id="headerMonotonicState" class="font-bold">开启</span>
+      </button>
+      <button id="resetAllBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" title="恢复初始状态">
+        <i class="fa-solid fa-rotate-left"></i>
+        <span class="hidden sm:inline">重置实验台</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container -->
+  <div class="flex-1 flex relative overflow-hidden">
+
+    <!-- Left Control Panel (Sidebar) -->
+    <aside id="sidebarPanel" class="w-full sm:w-[410px] md:w-[430px] bg-white border-r border-slate-200 flex flex-col h-full z-20 shrink-0 transition-all duration-300 shadow-lg sm:shadow-none absolute sm:relative left-0 top-0">
+      
+      <!-- Navigation Filter Tabs (All / Module 1 / Module 2 / Module 3) -->
+      <div class="px-3 pt-2.5 pb-2 border-b border-slate-100 bg-slate-50/70 flex items-center gap-1 shrink-0">
+        <button data-tab="all" class="sidebar-tab-btn flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold bg-white text-blue-600 shadow-sm border border-slate-200/80 transition-all">
+          全部展开
+        </button>
+        <button data-tab="func" class="sidebar-tab-btn flex-1 py-1.5 px-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all">
+          1.函数输入
+        </button>
+        <button data-tab="props" class="sidebar-tab-btn flex-1 py-1.5 px-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all">
+          2.性质看板
+        </button>
+        <button data-tab="geom" class="sidebar-tab-btn flex-1 py-1.5 px-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all">
+          3.线条作图
+        </button>
+      </div>
+
+      <!-- Scrollable Modules Area -->
+      <div class="flex-1 overflow-y-auto p-3.5 space-y-4">
+
+        <!-- ================= MODULE 1: 多函数输入与显隐控制 ================= -->
+        <section id="module-func" class="module-card bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="bg-slate-50 px-3.5 py-2.5 border-b border-slate-200/80 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-blue-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+              <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">多函数输入与显隐控制</h2>
+            </div>
+            <button id="addNewFuncBtn" type="button" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors flex items-center gap-1">
+              <i class="fa-solid fa-plus text-[10px]"></i> 新增函数
+            </button>
+          </div>
+
+          <div class="p-3.5 space-y-3">
+            <div class="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200/70">
+              <span><i class="fa-solid fa-circle-info text-blue-500 mr-1"></i>点击卡片切换<b>焦点函数</b>，右上角<b>方框打勾</b>控制图像显隐</span>
+              <span id="activeFuncIndicator" class="font-mono font-bold text-blue-600">焦点: f₁(x)</span>
+            </div>
+
+            <!-- Multi-Function Input Cards Container -->
+            <div id="multiFuncCardsContainer" class="space-y-2.5">
+              <!-- Populated dynamically by JS -->
+            </div>
+
+            <!-- Quick Math Symbol Keypad (Acts on Active Focused Function) -->
+            <div class="pt-1 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[11px] font-medium text-slate-400">快捷数学符号 <span id="keypadTargetHint" class="text-blue-600 font-semibold">(填入 f₁)</span></span>
+              </div>
+              <div class="grid grid-cols-6 gap-1">
+                <button type="button" data-insert="x" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs font-semibold text-slate-700 transition-all">x</button>
+                <button type="button" data-insert="^2" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs font-semibold text-slate-700 transition-all">x²</button>
+                <button type="button" data-insert="^3" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs font-semibold text-slate-700 transition-all">x³</button>
+                <button type="button" data-insert="^" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs font-semibold text-slate-700 transition-all">xⁿ</button>
+                <button type="button" data-insert="sqrt(x)" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs text-slate-700 transition-all">√x</button>
+                <button type="button" data-insert="abs(x)" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs text-slate-700 transition-all">|x|</button>
+                <button type="button" data-insert="1/x" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs text-slate-700 transition-all">1/x</button>
+                <button type="button" data-insert="sin(x)" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs text-slate-700 transition-all">sin</button>
+                <button type="button" data-insert="cos(x)" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs text-slate-700 transition-all">cos</button>
+                <button type="button" data-insert="ln(x)" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs text-slate-700 transition-all">ln</button>
+                <button type="button" data-insert="e^x" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs text-slate-700 transition-all">eˣ</button>
+                <button type="button" data-insert="pi" class="math-key-btn py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-slate-200/70 rounded-lg font-mono text-xs text-slate-700 transition-all">π</button>
+              </div>
+            </div>
+
+            <!-- Elementary Function Presets -->
+            <div>
+              <div class="text-[11px] font-medium text-slate-400 mb-1.5">常见初等函数预设 <span class="text-slate-400 font-normal">(点击填入当前焦点函数)</span></div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                <button type="button" data-preset="x^2 - 2*x - 3" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-blue-200 bg-blue-50/60 hover:bg-blue-100/70 transition-all">
+                  <div class="text-[11px] font-semibold text-blue-800">二次函数</div>
+                  <div class="font-mono text-[10px] text-blue-600 truncate">x² - 2x - 3</div>
+                </button>
+                <button type="button" data-preset="x + 1" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all">
+                  <div class="text-[11px] font-semibold text-slate-700">一次函数</div>
+                  <div class="font-mono text-[10px] text-slate-500 truncate">x + 1</div>
+                </button>
+                <button type="button" data-preset="x^3 - 3*x" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all">
+                  <div class="text-[11px] font-semibold text-slate-700">三次幂函数</div>
+                  <div class="font-mono text-[10px] text-slate-500 truncate">x³ - 3x</div>
+                </button>
+                <button type="button" data-preset="2/x" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all">
+                  <div class="text-[11px] font-semibold text-slate-700">反比例函数</div>
+                  <div class="font-mono text-[10px] text-slate-500 truncate">2 / x</div>
+                </button>
+                <button type="button" data-preset="x^(2/3)" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all">
+                  <div class="text-[11px] font-semibold text-slate-700">分数幂函数</div>
+                  <div class="font-mono text-[10px] text-slate-500 truncate">x^(2/3)</div>
+                </button>
+                <button type="button" data-preset="abs(x^2 - 4)" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all">
+                  <div class="text-[11px] font-semibold text-slate-700">绝对值翻折</div>
+                  <div class="font-mono text-[10px] text-slate-500 truncate">|x² - 4|</div>
+                </button>
+                <button type="button" data-preset="2^x - 2" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all">
+                  <div class="text-[11px] font-semibold text-slate-700">指数函数</div>
+                  <div class="font-mono text-[10px] text-slate-500 truncate">2ˣ - 2</div>
+                </button>
+                <button type="button" data-preset="ln(x)" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all">
+                  <div class="text-[11px] font-semibold text-slate-700">对数函数</div>
+                  <div class="font-mono text-[10px] text-slate-500 truncate">ln(x)</div>
+                </button>
+                <button type="button" data-preset="2*sin(x)" class="preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all">
+                  <div class="text-[11px] font-semibold text-slate-700">三角函数</div>
+                  <div class="font-mono text-[10px] text-slate-500 truncate">2sin(x)</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Parameter Sliders (a, b, c) -->
+            <div class="pt-2 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-sliders text-blue-600 text-[11px]"></i>
+                  全局动态参数滑块 <span class="font-mono text-[11px] text-slate-400">(a, b, c)</span>
+                </span>
+                <div class="flex items-center gap-1">
+                  <button id="useQuadraticParamBtn" class="text-[11px] px-2 py-0.5 rounded bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium transition-colors" title="在焦点函数中载入 a*x^2 + b*x + c">
+                    a·x²+b·x+c
+                  </button>
+                  <button id="usePowerParamBtn" class="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium transition-colors" title="在焦点函数中载入 a*x^3 + b*x + c">
+                    a·x³+b·x+c
+                  </button>
+                </div>
+              </div>
+
+              <div class="space-y-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/70">
+                <div class="flex items-center gap-2.5">
+                  <span class="font-mono text-xs font-bold text-slate-700 w-14">a = <span id="paramAVal" class="text-blue-600">1</span></span>
+                  <input id="paramASlider" type="range" min="-5" max="5" step="0.1" value="1" class="flex-1" />
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <span class="font-mono text-xs font-bold text-slate-700 w-14">b = <span id="paramBVal" class="text-blue-600">-2</span></span>
+                  <input id="paramBSlider" type="range" min="-6" max="6" step="0.1" value="-2" class="flex-1" />
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <span class="font-mono text-xs font-bold text-slate-700 w-14">c = <span id="paramCVal" class="text-blue-600">-3</span></span>
+                  <input id="paramCSlider" type="range" min="-8" max="8" step="0.1" value="-3" class="flex-1" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= MODULE 2: 函数性质看板与多函数交点 ================= -->
+        <section id="module-props" class="module-card bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="bg-slate-50 px-3.5 py-2.5 border-b border-slate-200/80 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+              <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">函数基本性质与交点看板</h2>
+            </div>
+            <span class="text-[11px] text-slate-400">切换焦点查看对应性质</span>
+          </div>
+
+          <div class="p-3.5 space-y-3">
+            <!-- Function Switcher Tabs for Properties Inspection -->
+            <div>
+              <div class="text-[11px] font-medium text-slate-500 mb-1.5">选择要深入观察基本性质的函数：</div>
+              <div id="propsFuncTabs" class="flex flex-wrap gap-1.5">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+
+            <!-- Visual Annotation Toggles -->
+            <div class="flex flex-wrap gap-2 pb-2.5 border-b border-slate-100">
+              <label class="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" title="开启后，当前焦点函数将用红升↗/绿降↘高亮绘制，其余函数保持各自专属颜色以便区分">
+                <input id="showMonotonicToggle" type="checkbox" checked class="rounded text-emerald-600 focus:ring-emerald-500" />
+                <span>焦点函数单调性着色与箭头</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                <input id="showSpecialPtsToggle" type="checkbox" checked class="rounded text-blue-600 focus:ring-blue-500" />
+                <span>零点/极值/函数交点标注</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                <input id="showSymmetryAxisToggle" type="checkbox" checked class="rounded text-indigo-600 focus:ring-indigo-500" />
+                <span>对称轴虚线</span>
+              </label>
+            </div>
+
+            <!-- Parity & Symmetry Analysis -->
+            <div class="bg-slate-50/90 rounded-xl p-2.5 border border-slate-200/70 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                  <i class="fa-solid fa-scale-balanced text-indigo-500"></i>
+                  <span id="propsTargetFuncTitle">f₁(x) 奇偶性与对称性</span>
+                </span>
+                <span id="parityResultText" class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">非奇非偶函数</span>
+              </div>
+              <div id="symmetryResultText" class="text-xs text-slate-600 font-mono pl-5">
+                对称轴: x = 1
+              </div>
+            </div>
+
+            <!-- Monotonicity Intervals -->
+            <div class="space-y-2">
+              <div class="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                <span id="monoTargetFuncTitle">f₁(x) 单调性区间分析</span>
+                <span class="text-[11px] font-normal text-slate-400">焦点图上：红升 ↗ / 绿降 ↘</span>
+              </div>
+              
+              <!-- Increasing Intervals -->
+              <div class="p-2.5 rounded-xl bg-rose-50/60 border border-rose-200/70">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-rose-700 mb-1">
+                  <span class="w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px]">↗</span>
+                  单调递增区间 (f'(x) &gt; 0)
+                </div>
+                <div id="incIntervalsBox" class="font-mono text-xs text-rose-900 selectable-text pl-5 break-all">
+                  [1, +∞)
+                </div>
+              </div>
+
+              <!-- Decreasing Intervals -->
+              <div class="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-200/70">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-700 mb-1">
+                  <span class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">↘</span>
+                  单调递减区间 (f'(x) &lt; 0)
+                </div>
+                <div id="decIntervalsBox" class="font-mono text-xs text-emerald-900 selectable-text pl-5 break-all">
+                  (-∞, 1]
+                </div>
+              </div>
+            </div>
+
+            <!-- Multi-Function Intersections Section (f_i ∩ f_j) -->
+            <div class="space-y-1.5 pt-1 border-t border-slate-100">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-indigo-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-circle-nodes text-indigo-600"></i>
+                  多函数图像公共交点 <span class="text-[11px] font-normal text-slate-400">(已勾选函数之间)</span>
+                </span>
+              </div>
+              <div id="funcIntersectionsContainer" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+
+            <!-- Special Points List (Roots, Y-Intercept, Extrema) -->
+            <div class="space-y-2 pt-1 border-t border-slate-100">
+              <div class="flex items-center justify-between">
+                <span id="specialPtsTargetTitle" class="text-xs font-semibold text-slate-700">f₁(x) 关键特征点 <span class="text-[11px] font-normal text-slate-400">(点击在图上定位)</span></span>
+              </div>
+
+              <div id="specialPointsContainer" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= MODULE 3: 线条创作与几何工具 ================= -->
+        <section id="module-geom" class="module-card bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="bg-slate-50 px-3.5 py-2.5 border-b border-slate-200/80 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-violet-600 text-white text-xs font-bold flex items-center justify-center">3</span>
+              <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">线条创作与交点求解</h2>
+            </div>
+            <span class="text-[11px] text-violet-600 font-medium">自动求各函数交点</span>
+          </div>
+
+          <div class="p-3.5 space-y-3.5">
+            <!-- Sub-method Switcher: Two-Point vs Tangent vs Canvas Hint -->
+            <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl">
+              <button id="subTabTwoPtBtn" type="button" class="py-1.5 px-2 rounded-lg text-xs font-semibold bg-white text-violet-700 shadow-sm transition-all">
+                <i class="fa-solid fa-bezier-curve mr-1"></i>两点坐标生成线条
+              </button>
+              <button id="subTabTangentBtn" type="button" class="py-1.5 px-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
+                <i class="fa-solid fa-compass-drafting mr-1"></i>函数切线生成器
+              </button>
+            </div>
+
+            <!-- Method 1: Two-Point Coordinate Input Form -->
+            <div id="twoPointFormPanel" class="space-y-2.5 bg-slate-50/70 p-3 rounded-xl border border-slate-200/80">
+              <div class="flex flex-wrap items-center justify-between gap-1">
+                <span class="text-xs font-semibold text-slate-700">方式一：输入两点坐标</span>
+                <div class="flex items-center gap-1">
+                  <label class="flex items-center gap-1 text-[11px] font-medium text-violet-700 cursor-pointer">
+                    <input id="snapPtsToFuncCheck" type="checkbox" class="rounded text-violet-600 focus:ring-violet-500" />
+                    <span>吸附至</span>
+                  </label>
+                  <select id="snapTargetFuncSelect" class="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] font-mono font-semibold text-violet-700 outline-none">
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+              </div>
+
+              <!-- Line Type Selector -->
+              <div class="grid grid-cols-3 gap-1.5">
+                <label class="cursor-pointer">
+                  <input type="radio" name="lineKind" value="line" checked class="peer sr-only" />
+                  <div class="text-center py-1 px-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600 peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 transition-all">
+                    无限延伸直线
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="lineKind" value="segment" class="peer sr-only" />
+                  <div class="text-center py-1 px-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600 peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 transition-all">
+                    两点线段
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="lineKind" value="ray" class="peer sr-only" />
+                  <div class="text-center py-1 px-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-600 peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:text-violet-700 transition-all">
+                    单向射线
+                  </div>
+                </label>
+              </div>
+
+              <!-- Point P1 & P2 Inputs -->
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-[11px] font-bold text-slate-500 mb-1">点 P₁ (x₁, y₁)</div>
+                  <div class="flex items-center gap-1.5">
+                    <div class="flex-1">
+                      <span class="text-[10px] text-slate-400 font-mono">x₁</span>
+                      <input id="p1xInput" type="number" step="0.5" value="-2" class="w-full px-2 py-1 text-xs font-mono border border-slate-200 rounded bg-slate-50 focus:bg-white focus:border-violet-500 outline-none" />
+                    </div>
+                    <div class="flex-1">
+                      <span class="text-[10px] text-slate-400 font-mono">y₁</span>
+                      <input id="p1yInput" type="number" step="0.5" value="2" class="w-full px-2 py-1 text-xs font-mono border border-slate-200 rounded bg-slate-50 focus:bg-white focus:border-violet-500 outline-none" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-[11px] font-bold text-slate-500 mb-1">点 P₂ (x₂, y₂)</div>
+                  <div class="flex items-center gap-1.5">
+                    <div class="flex-1">
+                      <span class="text-[10px] text-slate-400 font-mono">x₂</span>
+                      <input id="p2xInput" type="number" step="0.5" value="3" class="w-full px-2 py-1 text-xs font-mono border border-slate-200 rounded bg-slate-50 focus:bg-white focus:border-violet-500 outline-none" />
+                    </div>
+                    <div class="flex-1">
+                      <span class="text-[10px] text-slate-400 font-mono">y₂</span>
+                      <input id="p2yInput" type="number" step="0.5" value="-1" class="w-full px-2 py-1 text-xs font-mono border border-slate-200 rounded bg-slate-50 focus:bg-white focus:border-violet-500 outline-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button id="addTwoPtLineBtn" type="button" class="w-full py-2 px-3 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-plus"></i>
+                生成线条并计算与可见函数交点
+              </button>
+            </div>
+
+            <!-- Method 2: Tangent Line Generator Form -->
+            <div id="tangentFormPanel" class="hidden space-y-2.5 bg-slate-50/70 p-3 rounded-xl border border-slate-200/80">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-700">方式二：生成函数切线</span>
+                <div class="flex items-center gap-1 text-xs">
+                  <span class="text-[11px] text-slate-500">目标:</span>
+                  <select id="tangentTargetFuncSelect" class="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] font-mono font-semibold text-amber-700 outline-none">
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+              </div>
+
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <label class="text-xs font-medium text-slate-600 shrink-0">切点横坐标 x₀ =</label>
+                  <input id="tangentX0Input" type="number" step="0.2" value="2" class="w-24 px-2 py-1 text-xs font-mono font-semibold border border-slate-300 rounded bg-slate-50 focus:bg-white focus:border-violet-500 outline-none" />
+                  <div id="tangentPreviewCoord" class="text-xs font-mono text-slate-500 truncate flex-1 text-right">
+                    f(2) = -3, k = 2
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-400 shrink-0">滑动观察:</span>
+                  <input id="tangentX0Slider" type="range" min="-6" max="6" step="0.1" value="2" class="flex-1" />
+                </div>
+              </div>
+
+              <button id="addTangentLineBtn" type="button" class="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                添加 x₀ 处切线至画布
+              </button>
+            </div>
+
+            <!-- Method 3 Quick Prompt: Direct Canvas Drawing -->
+            <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-indigo-50/70 border border-indigo-200/70 text-xs text-indigo-900">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-hand-pointer text-indigo-600"></i>
+                <span>可在画布顶部切换<b>【两点画线】</b>或<b>【切线】</b>直接点击作图</span>
+              </div>
+            </div>
+
+            <!-- Created Lines & Intersections Manager List -->
+            <div class="space-y-2 pt-1">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-700">
+                  已创建几何线条与交点 (<span id="linesCountBadge">1</span>)
+                </span>
+                <div class="flex items-center gap-2">
+                  <button id="clearBrushBtn" class="hidden text-[11px] text-amber-600 hover:text-amber-700 font-medium">清空手绘笔迹</button>
+                  <button id="clearAllLinesBtn" class="text-[11px] text-rose-500 hover:text-rose-700 font-medium transition-colors">清空全部线条</button>
+                </div>
+              </div>
+
+              <div id="linesListContainer" class="space-y-2.5">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </aside>
+
+    <!-- Main Interactive Coordinate System Canvas Area -->
+    <main class="flex-1 relative bg-slate-50 h-full overflow-hidden flex flex-col">
+
+      <!-- Floating Top Canvas Toolbar (Mode Switcher & View Controls) -->
+      <div class="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        
+        <!-- Drawing / Interaction Mode Switcher -->
+        <div class="glass-panel pointer-events-auto p-1.5 rounded-2xl shadow-md border border-slate-200/90 flex items-center gap-1 flex-wrap">
+          <button data-mode="pan" class="canvas-mode-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm transition-all" title="拖拽平移画布、悬停吸附查看坐标、拖动线条端点">
+            <i class="fa-solid fa-arrow-pointer"></i>
+            <span>浏览 / 吸附</span>
+          </button>
+          <button data-mode="twopoint" class="canvas-mode-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 transition-all" title="在坐标系上依次点击两个位置生成直线或线段">
+            <i class="fa-solid fa-pen-ruler"></i>
+            <span>两点画线</span>
+          </button>
+          <button data-mode="tangent" class="canvas-mode-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 transition-all" title="悬停预览切线，点击一键锁定切线">
+            <i class="fa-solid fa-compass-drafting"></i>
+            <span>图上切线</span>
+          </button>
+          <button data-mode="brush" class="canvas-mode-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 transition-all" title="在坐标系中自由手绘批注">
+            <i class="fa-solid fa-paintbrush"></i>
+            <span>自由画笔</span>
+          </button>
+
+          <!-- Sub-options for Two-Point Canvas Drawing Mode -->
+          <div id="canvasModeSubBar" class="hidden items-center gap-1.5 pl-2 ml-1 border-l border-slate-200 text-xs">
+            <select id="canvasDrawKindSelect" class="bg-slate-100 border border-slate-200 text-slate-700 rounded-lg px-2 py-1 text-xs font-medium outline-none">
+              <option value="line">直线</option>
+              <option value="segment">线段</option>
+              <option value="ray">射线</option>
+            </select>
+            <label class="flex items-center gap-1 text-[11px] font-medium text-violet-700 bg-violet-50 px-2 py-1 rounded-lg border border-violet-200 cursor-pointer">
+              <input id="canvasDrawSnapFuncCheck" type="checkbox" class="rounded text-violet-600" />
+              <span>吸附f(x)</span>
+            </label>
+          </div>
+
+          <!-- Sub-options for Brush Mode -->
+          <div id="canvasBrushSubBar" class="hidden items-center gap-1.5 pl-2 ml-1 border-l border-slate-200 text-xs">
+            <input id="brushColorPicker" type="color" value="#e11d48" class="w-6 h-6 rounded cursor-pointer border-0 bg-transparent" title="选择画笔颜色" />
+            <button id="toolbarClearBrushBtn" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-[11px] font-medium">
+              清除笔迹
+            </button>
+          </div>
+        </div>
+
+        <!-- View Zoom & Reset Controls -->
+        <div class="glass-panel pointer-events-auto p-1.5 rounded-2xl shadow-md border border-slate-200/90 flex items-center gap-1">
+          <button id="zoomInBtn" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors" title="放大视图 (滚轮向上)">
+            <i class="fa-solid fa-magnifying-glass-plus text-xs"></i>
+          </button>
+          <button id="zoomOutBtn" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors" title="缩小视图 (滚轮向下)">
+            <i class="fa-solid fa-magnifying-glass-minus text-xs"></i>
+          </button>
+          <button id="resetViewBtn" class="px-2.5 h-8 rounded-xl flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors" title="重置回坐标原点默认视野">
+            <i class="fa-solid fa-crosshairs text-blue-600"></i>
+            <span class="hidden sm:inline">重置视角</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Interactive Mode Banner / Helper Prompt -->
+      <div id="modeStatusBanner" class="hidden absolute top-16 left-1/2 -translate-x-1/2 z-10 pointer-events-none px-4 py-1.5 rounded-full bg-slate-900/85 text-white text-xs font-medium shadow-lg backdrop-blur-sm flex items-center gap-2">
+        <span id="modeBannerDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="modeBannerText">请点击坐标系选择第一个点 P₁</span>
+      </div>
+
+      <!-- Main Coordinate System Canvas -->
+      <div id="canvasWrapper" class="flex-1 w-full h-full relative cursor-crosshair">
+        <canvas id="mathCanvas" class="block w-full h-full"></canvas>
+      </div>
+
+      <!-- Bottom Floating Status & Legend Bar -->
+      <div class="absolute bottom-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <!-- Live Cursor & Magnetic Snap Readout -->
+        <div class="glass-panel pointer-events-auto px-3.5 py-2 rounded-xl shadow-md border border-slate-200/90 flex items-center gap-3 text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-600" id="cursorIndicatorDot"></span>
+            <span class="text-slate-500 font-medium">光标坐标:</span>
+            <span id="liveCoordDisplay" class="font-mono font-semibold text-slate-800">(0.00, 0.00)</span>
+          </div>
+          <div id="snapTagBadge" class="hidden items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-medium text-[11px]">
+            <i class="fa-solid fa-magnet text-[10px]"></i>
+            <span id="snapTagText">已吸附函数图像</span>
+          </div>
+        </div>
+
+        <!-- Graph Legend -->
+        <div class="glass-panel pointer-events-auto px-3 py-1.5 rounded-xl shadow-md border border-slate-200/90 hidden md:flex items-center gap-3 text-[11px] font-medium text-slate-600">
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>焦点递增 ↗</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>焦点递减 ↘</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600 ring-2 ring-indigo-200 inline-block"></span>多函数交点</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-fuchsia-600 ring-2 ring-fuchsia-200 inline-block"></span>线与函数交点</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Application Script -->
+  <script>
+    /*************************************************************************
+     * 1. APPLICATION STATE & MULTI-FUNCTION CONFIGURATION
+     *************************************************************************/
+    const FUNC_PALETTE = [
+      { color: '#2563eb', badgeBg: 'bg-blue-50', badgeText: 'text-blue-700', border: 'border-blue-300', ring: 'ring-blue-500/20', lightHex: '#dbeafe' },
+      { color: '#ea580c', badgeBg: 'bg-orange-50', badgeText: 'text-orange-700', border: 'border-orange-300', ring: 'ring-orange-500/20', lightHex: '#ffedd5' },
+      { color: '#0d9488', badgeBg: 'bg-teal-50', badgeText: 'text-teal-700', border: 'border-teal-300', ring: 'ring-teal-500/20', lightHex: '#ccfbf1' },
+      { color: '#9333ea', badgeBg: 'bg-purple-50', badgeText: 'text-purple-700', border: 'border-purple-300', ring: 'ring-purple-500/20', lightHex: '#f3e8ff' },
+      { color: '#db2777', badgeBg: 'bg-pink-50', badgeText: 'text-pink-700', border: 'border-pink-300', ring: 'ring-pink-500/20', lightHex: '#fce7f3' }
+    ];
+
+    const SUBSCRIPTS = ['₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
+    function getFuncSubName(index) {
+      return `f${SUBSCRIPTS[index] || (index + 1)}`;
+    }
+
+    function createEmptyAnalysis() {
+      return {
+        parity: '非奇非偶函数',
+        symmetryText: '无明显对称轴',
+        symmetryAxisX: null,
+        symmetryCenter: null,
+        incIntervals: [],
+        decIntervals: [],
+        roots: [],
+        yIntercept: null,
+        extrema: []
+      };
+    }
+
+    const state = {
+      // Multi-function list (default 3 functions: f1 and f2 checked, f3 ready to check)
+      functions: [
+        {
+          id: 1,
+          name: 'f₁',
+          rawExpr: 'x^2 - 2*x - 3',
+          visible: true, // Top-right checkbox checked!
+          color: FUNC_PALETTE[0].color,
+          palette: FUNC_PALETTE[0],
+          compiledFn: null,
+          parseValid: true,
+          analysis: createEmptyAnalysis()
+        },
+        {
+          id: 2,
+          name: 'f₂',
+          rawExpr: 'x + 1',
+          visible: true, // Top-right checkbox checked!
+          color: FUNC_PALETTE[1].color,
+          palette: FUNC_PALETTE[1],
+          compiledFn: null,
+          parseValid: true,
+          analysis: createEmptyAnalysis()
+        },
+        {
+          id: 3,
+          name: 'f₃',
+          rawExpr: 'x^3 - 3*x',
+          visible: false, // Unchecked by default; user can check box anytime to show 3rd graph
+          color: FUNC_PALETTE[2].color,
+          palette: FUNC_PALETTE[2],
+          compiledFn: null,
+          parseValid: true,
+          analysis: createEmptyAnalysis()
+        }
+      ],
+      activeFuncId: 1,
+      nextFuncId: 4,
+      params: { a: 1, b: -2, c: -3 },
+
+      // Pairwise intersections between visible functions: [{ fAName, fBName, colorA, colorB, x, y }]
+      funcIntersections: [],
+
+      // Coordinate system viewport state
+      view: {
+        originX: 0,
+        originY: 0,
+        scale: 65,
+        minScale: 8,
+        maxScale: 1200
+      },
+
+      // Visual annotation switches
+      showMonotonic: true,
+      showSpecialPoints: true,
+      showSymmetryAxis: true,
+
+      // Custom Geometric Lines
+      lines: [],
+      nextLineId: 1,
+      lineColors: ['#7c3aed', '#0284c7', '#db2777', '#4f46e5', '#059669'],
+
+      // Freehand Brush Annotations
+      brushStrokes: [],
+      activeStroke: null,
+
+      // Canvas interaction state
+      mode: 'pan',
+      isDraggingCanvas: false,
+      dragStartPx: { x: 0, y: 0 },
+      dragStartOrigin: { x: 0, y: 0 },
+      draggingEndpoint: null,
+
+      // Mouse & Snap state
+      mousePx: { x: -1000, y: -1000, inside: false },
+      mouseMath: { x: 0, y: 0 },
+      snappedPoint: null,
+
+      // Two-point interactive drawing on canvas state
+      tempFirstPoint: null,
+
+      // Highlight pulse animation for locating points
+      pulseTarget: null
+    };
+
+    function getActiveFunc() {
+      return state.functions.find(f => f.id === state.activeFuncId) || state.functions[0];
+    }
+
+    function getFuncById(id) {
+      return state.functions.find(f => f.id === Number(id)) || getActiveFunc();
+    }
+
+    /*************************************************************************
+     * 2. MATHEMATICAL EXPRESSION PARSER & EVALUATOR
+     * Supports elementary functions, implicit multiplication (2x, 3(x+1)),
+     * power operator ^ (including odd fractional powers of negative numbers like x^(1/3), x^(2/3))
+     *************************************************************************/
+    function realPow(base, exp) {
+      if (isNaN(base) || isNaN(exp)) return NaN;
+      if (base >= 0) return Math.pow(base, exp);
+      // Handle integer exponents
+      if (Number.isInteger(exp)) return Math.pow(base, exp);
+      // Check if exp is close to a rational p/q with small odd denominator q (e.g., 1/3, 2/3, 1/5, 3/5)
+      const oddDenominators = [3, 5, 7, 9];
+      for (const q of oddDenominators) {
+        const p = Math.round(exp * q);
+        if (Math.abs(exp - p / q) < 1e-7) {
+          const absVal = Math.pow(-base, p / q);
+          return (Math.abs(p) % 2 === 0) ? absVal : -absVal;
+        }
+      }
+      return NaN;
+    }
+
+    const MATH_SCOPE = {
+      sin: Math.sin,
+      cos: Math.cos,
+      tan: Math.tan,
+      asin: Math.asin,
+      acos: Math.acos,
+      atan: Math.atan,
+      abs: Math.abs,
+      sqrt: (v) => (v < 0 ? NaN : Math.sqrt(v)),
+      cbrt: Math.cbrt,
+      ln: (v) => (v <= 0 ? NaN : Math.log(v)),
+      log: (v) => (v <= 0 ? NaN : Math.log10(v)),
+      log2: (v) => (v <= 0 ? NaN : Math.log2(v)),
+      exp: Math.exp,
+      floor: Math.floor,
+      ceil: Math.ceil,
+      round: Math.round,
+      sign: Math.sign,
+      pow: realPow,
+      pi: Math.PI,
+      PI: Math.PI,
+      e: Math.E,
+      E: Math.E
+    };
+
+    function preprocessMathExpression(raw) {
+      if (!raw || !raw.trim()) return '';
+      let s = raw.trim();
+
+      // Normalize full-width characters and common math symbols
+      s = s
+        .replace(/（/g, '(')
+        .replace(/）/g, ')')
+        .replace(/＋/g, '+')
+        .replace(/－/g, '-')
+        .replace(/×|·|•/g, '*')
+        .replace(/÷/g, '/')
+        .replace(/＾/g, '^')
+        .replace(/π/g, 'pi')
+        .replace(/√\(/g, 'sqrt(')
+        .replace(/√([0-9a-zA-Z]+)/g, 'sqrt($1)');
+
+      // Strip leading "y=" or "f(x)=" if user typed it
+      s = s.replace(/^(f\s*\(\s*x\s*\)|y)\s*=\s*/i, '');
+
+      // Handle |...| absolute value bars if simple pair
+      while (/\|([^|]+)\|/.test(s)) {
+        s = s.replace(/\|([^|]+)\|/g, 'abs($1)');
+      }
+
+      // Protect function names and constants with placeholders before implicit multiplication
+      const tokens = ['asin', 'acos', 'atan', 'sqrt', 'cbrt', 'log2', 'floor', 'ceil', 'round', 'sign', 'sin', 'cos', 'tan', 'abs', 'exp', 'log', 'ln', 'pi'];
+      const mapPlaceholders = [];
+      tokens.forEach((tk, idx) => {
+        const reg = new RegExp(tk, 'gi');
+        s = s.replace(reg, `__TK${idx}__`);
+      });
+
+      // Implicit multiplication rules:
+      // 1. Number followed by variable, parameter, placeholder, or '('
+      s = s.replace(/(\d+(\.\d+)?)\s*(?=[xabc(|_])/gi, '$1*');
+      // 2. Variable/parameter (x, a, b, c) or ')' followed by '(' or variable/parameter or placeholder or number
+      s = s.replace(/([xabc)])\s*(?=[xabc(_0-9])/gi, '$1*');
+      // 3. Variable combinations like ax, bx, cx
+      s = s.replace(/([abc])\s*([x])/gi, '$1*$2');
+      s = s.replace(/([x])\s*([abc])/gi, '$1*$2');
+
+      // Restore placeholders
+      tokens.forEach((tk, idx) => {
+        const reg = new RegExp(`__TK${idx}__`, 'g');
+        s = s.replace(reg, tk.toLowerCase());
+      });
+
+      // Convert power operator ^ into realPow(base, exp)
+      // We iteratively transform rightmost `A ^ B` expressions so nested powers work properly
+      s = convertPowerOperator(s);
+
+      return s;
+    }
+
+    function extractLeftOperand(str, caretIdx) {
+      let i = caretIdx - 1;
+      while (i >= 0 && str[i] === ' ') i--;
+      if (i < 0) return null;
+
+      if (str[i] === ')') {
+        let depth = 0;
+        let j = i;
+        while (j >= 0) {
+          if (str[j] === ')') depth++;
+          else if (str[j] === '(') {
+            depth--;
+            if (depth === 0) break;
+          }
+          j--;
+        }
+        if (j < 0) return null;
+        // Include preceding function identifier if any (e.g. sin(x)^2)
+        let k = j - 1;
+        while (k >= 0 && /[a-zA-Z0-9_]/.test(str[k])) k--;
+        return { start: k + 1, end: i + 1, text: str.slice(k + 1, i + 1) };
+      } else {
+        let j = i;
+        while (j >= 0 && /[a-zA-Z0-9_.]/.test(str[j])) j--;
+        return { start: j + 1, end: i + 1, text: str.slice(j + 1, i + 1) };
+      }
+    }
+
+    function extractRightOperand(str, caretIdx) {
+      let i = caretIdx + 1;
+      while (i < str.length && str[i] === ' ') i++;
+      if (i >= str.length) return null;
+
+      let start = i;
+      if (str[i] === '+' || str[i] === '-') {
+        i++;
+        while (i < str.length && str[i] === ' ') i++;
+      }
+
+      if (str[i] === '(') {
+        let depth = 0;
+        let j = i;
+        while (j < str.length) {
+          if (str[j] === '(') depth++;
+          else if (str[j] === ')') {
+            depth--;
+            if (depth === 0) break;
+          }
+          j++;
+        }
+        if (j >= str.length) return null;
+        return { start, end: j + 1, text: str.slice(start, j + 1) };
+      } else {
+        let j = i;
+        while (j < str.length && /[a-zA-Z0-9_.]/.test(str[j])) j++;
+        // Check if it's a function call like x^sin(x)
+        if (j < str.length && str[j] === '(') {
+          let depth = 0;
+          while (j < str.length) {
+            if (str[j] === '(') depth++;
+            else if (str[j] === ')') {
+              depth--;
+              if (depth === 0) { j++; break; }
+            }
+            j++;
+          }
+        }
+        return { start, end: j, text: str.slice(start, j) };
+      }
+    }
+
+    function convertPowerOperator(expr) {
+      let s = expr;
+      let safety = 0;
+      while (s.includes('^') && safety < 35) {
+        safety++;
+        const idx = s.lastIndexOf('^');
+        const left = extractLeftOperand(s, idx);
+        const right = extractRightOperand(s, idx);
+        if (!left || !right || !left.text || !right.text) {
+          s = s.replace('^', '**');
+          break;
+        }
+        s = s.slice(0, left.start) + `pow(${left.text},${right.text})` + s.slice(right.end);
+      }
+      return s;
+    }
+
+    function compileFunction(rawExpr) {
+      try {
+        const processed = preprocessMathExpression(rawExpr);
+        if (!processed) throw new Error('Empty expression');
+
+        const paramNames = Object.keys(MATH_SCOPE);
+        const paramVals = Object.values(MATH_SCOPE);
+        const fnBuilder = new Function(...paramNames, 'a', 'b', 'c', 'x', `"use strict"; return (${processed});`);
+
+        const testFn = (x) => {
+          try {
+            const val = fnBuilder(...paramVals, state.params.a, state.params.b, state.params.c, x);
+            return typeof val === 'number' && !isNaN(val) ? val : NaN;
+          } catch {
+            return NaN;
+          }
+        };
+
+        fnBuilder(...paramVals, 1, 1, 1, 1.2345);
+        return { valid: true, fn: testFn };
+      } catch (err) {
+        return { valid: false, fn: () => NaN };
+      }
+    }
+
+    function evalFuncObj(fnObj, x) {
+      if (!fnObj || !fnObj.parseValid || !fnObj.compiledFn) return NaN;
+      const y = fnObj.compiledFn(x);
+      return Math.abs(y) > 1e8 ? NaN : y;
+    }
+
+    function evalF(x, funcId = null) {
+      const target = funcId ? getFuncById(funcId) : getActiveFunc();
+      return evalFuncObj(target, x);
+    }
+
+    // Numerical derivative f'(x) for a given function object
+    function evalFuncDerivative(fnObj, x) {
+      const h = 1e-5;
+      const y1 = evalFuncObj(fnObj, x - h);
+      const y2 = evalFuncObj(fnObj, x + h);
+      if (!isFinite(y1) || !isFinite(y2)) return NaN;
+      const ym = evalFuncObj(fnObj, x);
+      if (!isFinite(ym)) return NaN;
+      const dLeft = (ym - y1) / h;
+      const dRight = (y2 - ym) / h;
+      if (Math.abs(dLeft - dRight) > 1e3 && Math.sign(dLeft) !== Math.sign(dRight)) {
+        return NaN;
+      }
+      return (y2 - y1) / (2 * h);
+    }
+
+    function isFuncContinuousOnSegment(fnObj, x1, x2, y1, y2) {
+      if (!isFinite(y1) || !isFinite(y2)) return false;
+      const xm = 0.5 * (x1 + x2);
+      const ym = evalFuncObj(fnObj, xm);
+      if (!isFinite(ym)) return false;
+      const span = Math.abs(y2 - y1);
+      if (span > 15) {
+        const minY = Math.min(y1, y2);
+        const maxY = Math.max(y1, y2);
+        if (ym < minY - span || ym > maxY + span) return false;
+        if (y1 * y2 < 0 && Math.abs(ym) > Math.max(Math.abs(y1), Math.abs(y2)) * 0.9) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /*************************************************************************
+     * 3. COORDINATE CONVERSION HELPERS
+     *************************************************************************/
+    function mathToScreenX(x) {
+      return state.view.originX + x * state.view.scale;
+    }
+    function mathToScreenY(y) {
+      return state.view.originY - y * state.view.scale;
+    }
+    function screenToMathX(px) {
+      return (px - state.view.originX) / state.view.scale;
+    }
+    function screenToMathY(py) {
+      return (state.view.originY - py) / state.view.scale;
+    }
+
+    function formatNum(n, digits = 2) {
+      if (!isFinite(n)) return '不存在';
+      if (Math.abs(n) < 1e-7) return '0';
+      const rounded = Math.round(n * 1e5) / 1e5;
+      if (Number.isInteger(rounded)) return String(rounded);
+      return Number(n.toFixed(digits)).toString();
+    }
+
+    /*************************************************************************
+     * 4. AUTOMATIC MULTI-FUNCTION PROPERTIES & INTERSECTION SOLVER
+     *************************************************************************/
+    function refineRootBisection(g, a, b, iter = 32) {
+      let fa = g(a);
+      let fb = g(b);
+      if (!isFinite(fa) || !isFinite(fb)) return null;
+      if (Math.abs(fa) < 1e-9) return a;
+      if (Math.abs(fb) < 1e-9) return b;
+      if (fa * fb > 0) return null;
+
+      let left = a, right = b;
+      for (let i = 0; i < iter; i++) {
+        const mid = 0.5 * (left + right);
+        const fm = g(mid);
+        if (!isFinite(fm)) return null;
+        if (Math.abs(fm) < 1e-10) {
+          left = right = mid;
+          break;
+        }
+        if (fa * fm <= 0) {
+          right = mid;
+          fb = fm;
+        } else {
+          left = mid;
+          fa = fm;
+        }
+      }
+      const root = 0.5 * (left + right);
+      const fRoot = g(root);
+      if (!isFinite(fRoot) || Math.abs(fRoot) > 0.05) return null;
+      return root;
+    }
+
+    function analyzeSingleFunction(fnObj, canvasWidth) {
+      const analysis = createEmptyAnalysis();
+      if (!fnObj.parseValid) {
+        fnObj.analysis = analysis;
+        return;
+      }
+
+      const f = (x) => evalFuncObj(fnObj, x);
+
+      // 1. Y-Intercept at x = 0
+      const y0 = f(0);
+      if (isFinite(y0)) {
+        analysis.yIntercept = { x: 0, y: y0 };
+      }
+
+      // 2. Parity & Symmetry Detection
+      const sampleXs = [0.35, 0.7, 1.2, 1.85, 2.6, 3.4, 4.3, 5.5];
+      let validPairs = 0;
+      let evenDiff = 0;
+      let oddDiff = 0;
+      let domainSymmetric = true;
+
+      for (const sx of sampleXs) {
+        const yp = f(sx);
+        const yn = f(-sx);
+        const fp = isFinite(yp);
+        const fn = isFinite(yn);
+        if (fp !== fn) {
+          domainSymmetric = false;
+          break;
+        }
+        if (fp && fn) {
+          validPairs++;
+          evenDiff = Math.max(evenDiff, Math.abs(yp - yn));
+          oddDiff = Math.max(oddDiff, Math.abs(yp + yn));
+        }
+      }
+
+      if (domainSymmetric && validPairs >= 3) {
+        if (evenDiff < 1e-5 && oddDiff < 1e-5) {
+          analysis.parity = '奇函数且偶函数';
+          analysis.symmetryText = '关于 Y 轴 (x = 0) 及原点 (0, 0) 对称';
+          analysis.symmetryAxisX = 0;
+        } else if (evenDiff < 1e-4) {
+          analysis.parity = '偶函数';
+          analysis.symmetryText = '关于 Y 轴 (x = 0) 轴对称';
+          analysis.symmetryAxisX = 0;
+        } else if (oddDiff < 1e-4) {
+          analysis.parity = '奇函数';
+          analysis.symmetryText = '关于坐标原点 O(0, 0) 中心对称';
+          analysis.symmetryCenter = { x: 0, y: 0 };
+        }
+      }
+
+      // 3. Scan visible & extended domain for Roots, Extrema, and Monotonicity
+      const viewXMin = screenToMathX(0);
+      const viewXMax = screenToMathX(canvasWidth || 900);
+      const scanMin = Math.min(-15, viewXMin - 4);
+      const scanMax = Math.max(15, viewXMax + 4);
+      const N = 1000;
+      const dx = (scanMax - scanMin) / N;
+
+      const addUniquePoint = (arr, pt, tol = 1e-2) => {
+        if (!isFinite(pt.x) || !isFinite(pt.y)) return;
+        const exists = arr.some(p => Math.abs(p.x - pt.x) < tol);
+        if (!exists) arr.push(pt);
+      };
+
+      let prevX = scanMin;
+      let prevY = f(prevX);
+
+      for (let i = 1; i <= N; i++) {
+        const curX = scanMin + i * dx;
+        const curY = f(curX);
+
+        // Root detection
+        if (isFinite(prevY) && isFinite(curY)) {
+          if (Math.abs(curY) < 1e-7) {
+            addUniquePoint(analysis.roots, { x: curX, y: 0 });
+          } else if (prevY * curY < 0 && isFuncContinuousOnSegment(fnObj, prevX, curX, prevY, curY)) {
+            const rx = refineRootBisection(f, prevX, curX);
+            if (rx !== null) {
+              addUniquePoint(analysis.roots, { x: rx, y: 0 });
+            }
+          } else if (Math.abs(curY) < Math.abs(prevY) && Math.abs(curY) < 0.08) {
+            const nextX = curX + dx;
+            const nextY = f(nextX);
+            if (isFinite(nextY) && Math.abs(curY) <= Math.abs(prevY) && Math.abs(curY) <= Math.abs(nextY)) {
+              let a = prevX, b = nextX;
+              for (let k = 0; k < 24; k++) {
+                const m1 = a + (b - a) * 0.382;
+                const m2 = a + (b - a) * 0.618;
+                if (Math.abs(f(m1)) < Math.abs(f(m2))) b = m2;
+                else a = m1;
+              }
+              const tx = 0.5 * (a + b);
+              const ty = f(tx);
+              if (Math.abs(ty) < 1e-5) {
+                addUniquePoint(analysis.roots, { x: tx, y: 0 });
+              }
+            }
+          }
+        }
+
+        // Extremum detection
+        if (i >= 2) {
+          const x0 = curX - 2 * dx;
+          const x1 = curX - dx;
+          const x2 = curX;
+          const y0 = f(x0);
+          const y1 = prevY;
+          const y2 = curY;
+
+          if (isFinite(y0) && isFinite(y1) && isFinite(y2) &&
+              isFuncContinuousOnSegment(fnObj, x0, x1, y0, y1) &&
+              isFuncContinuousOnSegment(fnObj, x1, x2, y1, y2)) {
+            const isPeak = y1 > y0 && y1 > y2;
+            const isValley = y1 < y0 && y1 < y2;
+            if (isPeak || isValley) {
+              let a = x0, b = x2;
+              for (let k = 0; k < 26; k++) {
+                const m1 = a + (b - a) * 0.381966;
+                const m2 = a + (b - a) * 0.618034;
+                const fm1 = f(m1);
+                const fm2 = f(m2);
+                if (isPeak) {
+                  if (fm1 > fm2) b = m2; else a = m1;
+                } else {
+                  if (fm1 < fm2) b = m2; else a = m1;
+                }
+              }
+              const ex = 0.5 * (a + b);
+              const ey = f(ex);
+              if (Math.abs(ey - y0) > 1e-7 || Math.abs(ey - y2) > 1e-7) {
+                addUniquePoint(analysis.extrema, {
+                  x: ex,
+                  y: ey,
+                  kind: isPeak ? '极大值点' : '极小值点'
+                }, 0.03);
+              }
+            }
+          }
+        }
+
+        prevX = curX;
+        prevY = curY;
+      }
+
+      // Shifted vertical axis of symmetry (e.g., quadratic vertex x = k)
+      if (analysis.symmetryAxisX === null && analysis.extrema.length === 1) {
+        const vx = analysis.extrema[0].x;
+        let symOk = true;
+        for (const d of [0.5, 1.2, 2.3, 3.5]) {
+          const yl = f(vx - d);
+          const yr = f(vx + d);
+          if (!isFinite(yl) || !isFinite(yr) || Math.abs(yl - yr) > 1e-3) {
+            symOk = false;
+            break;
+          }
+        }
+        if (symOk) {
+          analysis.symmetryAxisX = vx;
+          analysis.symmetryText = `对称轴: x = ${formatNum(vx)}`;
+        }
+      }
+
+      // 4. Construct Monotonicity Intervals
+      buildMonotonicityIntervals(fnObj, analysis, scanMin, scanMax);
+      fnObj.analysis = analysis;
+    }
+
+    function buildMonotonicityIntervals(fnObj, analysis, scanMin, scanMax) {
+      const f = (x) => evalFuncObj(fnObj, x);
+      const steps = 550;
+      const dx = (scanMax - scanMin) / steps;
+      const segments = [];
+
+      let segStart = null;
+      let segDir = null;
+
+      for (let i = 0; i < steps; i++) {
+        const x1 = scanMin + i * dx;
+        const x2 = x1 + dx;
+        const y1 = f(x1);
+        const y2 = f(x2);
+
+        if (!isFuncContinuousOnSegment(fnObj, x1, x2, y1, y2)) {
+          if (segStart !== null && segDir) {
+            segments.push({ start: segStart, end: x1, dir: segDir });
+          }
+          segStart = null;
+          segDir = null;
+          continue;
+        }
+
+        const diff = y2 - y1;
+        let dir = 'const';
+        if (diff > 1e-6) dir = 'inc';
+        else if (diff < -1e-6) dir = 'dec';
+
+        if (segStart === null) {
+          segStart = x1;
+          segDir = dir;
+        } else if (dir !== segDir && dir !== 'const') {
+          segments.push({ start: segStart, end: x1, dir: segDir });
+          segStart = x1;
+          segDir = dir;
+        }
+      }
+      if (segStart !== null && segDir) {
+        segments.push({ start: segStart, end: scanMax, dir: segDir });
+      }
+
+      const snapEndpoint = (val, isLeftEdge, isRightEdge) => {
+        if (isLeftEdge && Math.abs(val - scanMin) < dx * 2) return '-∞';
+        if (isRightEdge && Math.abs(val - scanMax) < dx * 2) return '+∞';
+        for (const ext of analysis.extrema) {
+          if (Math.abs(val - ext.x) < dx * 2.2) return formatNum(ext.x);
+        }
+        if (Math.abs(val) < dx * 1.5) return '0';
+        const rounded = Math.round(val * 10) / 10;
+        if (Math.abs(val - rounded) < dx * 1.2) return formatNum(rounded);
+        return formatNum(val, 2);
+      };
+
+      segments.forEach((seg) => {
+        if (Math.abs(seg.end - seg.start) < dx * 1.5) return;
+        const leftStr = snapEndpoint(seg.start, true, false);
+        const rightStr = snapEndpoint(seg.end, false, true);
+        if (leftStr === rightStr) return;
+
+        const leftOpen = leftStr === '-∞' || !isFinite(f(Number(leftStr)));
+        const rightOpen = rightStr === '+∞' || !isFinite(f(Number(rightStr)));
+        const intervalNotation = `${leftOpen ? '(' : '['}${leftStr}, ${rightStr}${rightOpen ? ')' : ']'}`;
+
+        if (seg.dir === 'inc') analysis.incIntervals.push(intervalNotation);
+        else if (seg.dir === 'dec') analysis.decIntervals.push(intervalNotation);
+      });
+    }
+
+    // Solve pairwise intersections between all visible (checked) functions
+    function computePairwiseFunctionIntersections(canvasWidth) {
+      state.funcIntersections = [];
+      const visibleFuncs = state.functions.filter(f => f.visible && f.parseValid);
+      if (visibleFuncs.length < 2) return;
+
+      const viewXMin = screenToMathX(0);
+      const viewXMax = screenToMathX(canvasWidth || 900);
+      const scanMin = Math.min(-15, viewXMin - 4);
+      const scanMax = Math.max(15, viewXMax + 4);
+      const steps = 1000;
+      const dx = (scanMax - scanMin) / steps;
+
+      for (let i = 0; i < visibleFuncs.length; i++) {
+        for (let j = i + 1; j < visibleFuncs.length; j++) {
+          const fA = visibleFuncs[i];
+          const fB = visibleFuncs[j];
+          const diffFn = (x) => evalFuncObj(fA, x) - evalFuncObj(fB, x);
+
+          const addPairIntersection = (ix) => {
+            if (!isFinite(ix)) return;
+            const yA = evalFuncObj(fA, ix);
+            const yB = evalFuncObj(fB, ix);
+            if (!isFinite(yA) || !isFinite(yB) || Math.abs(yA - yB) > 0.02) return;
+            const dup = state.funcIntersections.some(
+              pt => pt.fAId === fA.id && pt.fBId === fB.id && Math.abs(pt.x - ix) < 1.5e-2
+            );
+            if (!dup) {
+              state.funcIntersections.push({
+                fAId: fA.id,
+                fBId: fB.id,
+                fAName: fA.name,
+                fBName: fB.name,
+                colorA: fA.color,
+                colorB: fB.color,
+                x: ix,
+                y: 0.5 * (yA + yB)
+              });
+            }
+          };
+
+          let prevX = scanMin;
+          let prevD = diffFn(prevX);
+
+          for (let s = 1; s <= steps; s++) {
+            const curX = scanMin + s * dx;
+            const curD = diffFn(curX);
+
+            if (isFinite(prevD) && isFinite(curD)) {
+              if (Math.abs(curD) < 1e-7) {
+                addPairIntersection(curX);
+              } else if (
+                prevD * curD < 0 &&
+                isFuncContinuousOnSegment(fA, prevX, curX, evalFuncObj(fA, prevX), evalFuncObj(fA, curX)) &&
+                isFuncContinuousOnSegment(fB, prevX, curX, evalFuncObj(fB, prevX), evalFuncObj(fB, curX))
+              ) {
+                const rx = refineRootBisection(diffFn, prevX, curX);
+                if (rx !== null) addPairIntersection(rx);
+              } else if (Math.abs(curD) < Math.abs(prevD) && Math.abs(curD) < 0.05) {
+                const nextD = diffFn(curX + dx);
+                if (isFinite(nextD) && Math.abs(curD) <= Math.abs(nextD)) {
+                  let a = prevX, b = curX + dx;
+                  for (let m = 0; m < 24; m++) {
+                    const m1 = a + (b - a) * 0.382;
+                    const m2 = a + (b - a) * 0.618;
+                    if (Math.abs(diffFn(m1)) < Math.abs(diffFn(m2))) b = m2; else a = m1;
+                  }
+                  const tx = 0.5 * (a + b);
+                  if (Math.abs(diffFn(tx)) < 1e-4) addPairIntersection(tx);
+                }
+              }
+            }
+            prevX = curX;
+            prevD = curD;
+          }
+        }
+      }
+    }
+
+    function analyzeFunctionProperties(canvasWidth) {
+      state.functions.forEach(fnObj => {
+        analyzeSingleFunction(fnObj, canvasWidth);
+      });
+      computePairwiseFunctionIntersections(canvasWidth);
+      renderAnalysisDashboard();
+      updateAllLinesIntersections();
+    }
+
+    /*************************************************************************
+     * 5. GEOMETRIC LINES & AUTOMATIC MULTI-FUNCTION INTERSECTION ENGINE
+     *************************************************************************/
+    function getLineAnalytics(line) {
+      let x1 = line.p1.x, y1 = line.p1.y;
+      let x2 = line.p2.x, y2 = line.p2.y;
+
+      const targetFunc = getFuncById(line.targetFuncId || state.activeFuncId);
+
+      if (line.kind === 'tangent') {
+        const x0 = line.x0;
+        const y0 = evalFuncObj(targetFunc, x0);
+        const k = evalFuncDerivative(targetFunc, x0);
+        if (!isFinite(y0) || !isFinite(k)) {
+          return { valid: false, eqText: `${targetFunc.name} 在该处无切线`, slopeText: '不存在', distText: '-' };
+        }
+        x1 = x0;
+        y1 = y0;
+        x2 = x0 + 1;
+        y2 = y0 + k;
+        line.p1 = { x: x1, y: y1 };
+        line.p2 = { x: x2, y: y2 };
+      } else if (line.snapToFunc) {
+        y1 = evalFuncObj(targetFunc, x1);
+        y2 = evalFuncObj(targetFunc, x2);
+        if (isFinite(y1)) line.p1.y = y1;
+        if (isFinite(y2)) line.p2.y = y2;
+      }
+
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const dist = Math.hypot(dx, dy);
+
+      if (Math.abs(dx) < 1e-7 && Math.abs(dy) < 1e-7) {
+        return { valid: false, eqText: '两点重合', slopeText: '-', distText: '0' };
+      }
+
+      if (Math.abs(dx) < 1e-6) {
+        return {
+          valid: true,
+          isVertical: true,
+          xConst: x1,
+          k: Infinity,
+          b: NaN,
+          eqText: `x = ${formatNum(x1)}`,
+          slopeText: '不存在 (垂直于X轴)',
+          distText: formatNum(dist)
+        };
+      }
+
+      const k = dy / dx;
+      const b = y1 - k * x1;
+
+      let eq = 'y = ';
+      if (Math.abs(k) < 1e-6) {
+        eq += formatNum(b);
+      } else {
+        if (Math.abs(k - 1) < 1e-6) eq += 'x';
+        else if (Math.abs(k + 1) < 1e-6) eq += '-x';
+        else eq += `${formatNum(k)}x`;
+
+        if (Math.abs(b) >= 1e-6) {
+          eq += b > 0 ? ` + ${formatNum(b)}` : ` - ${formatNum(Math.abs(b))}`;
+        }
+      }
+
+      return {
+        valid: true,
+        isVertical: false,
+        k,
+        b,
+        eqText: eq,
+        slopeText: formatNum(k),
+        distText: line.kind === 'tangent' ? `${targetFunc.name}切线` : formatNum(dist)
+      };
+    }
+
+    function isPointOnLineGeometry(line, x, y) {
+      if (line.kind === 'line' || line.kind === 'tangent') return true;
+      const x1 = line.p1.x, y1 = line.p1.y;
+      const x2 = line.p2.x, y2 = line.p2.y;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq < 1e-10) return false;
+      const t = ((x - x1) * dx + (y - y1) * dy) / lenSq;
+      if (line.kind === 'segment') {
+        return t >= -1e-5 && t <= 1 + 1e-5;
+      }
+      if (line.kind === 'ray') {
+        return t >= -1e-5;
+      }
+      return true;
+    }
+
+    // Solve all intersections between a geometric line and ALL currently visible (checked) functions
+    function computeLineIntersections(line) {
+      const info = getLineAnalytics(line);
+      line.analytics = info;
+      line.intersections = [];
+      if (!info.valid) return;
+
+      const visibleFuncs = state.functions.filter(f => f.visible && f.parseValid);
+      if (visibleFuncs.length === 0) return;
+
+      const canvasW = document.getElementById('mathCanvas')?.width || 1000;
+      const viewXMin = screenToMathX(0);
+      const viewXMax = screenToMathX(canvasW);
+
+      visibleFuncs.forEach((fnObj) => {
+        if (info.isVertical) {
+          const y = evalFuncObj(fnObj, info.xConst);
+          if (isFinite(y) && isPointOnLineGeometry(line, info.xConst, y)) {
+            line.intersections.push({ x: info.xConst, y, funcName: fnObj.name, funcColor: fnObj.color });
+          }
+          return;
+        }
+
+        const k = info.k;
+        const b = info.b;
+        const h = (x) => evalFuncObj(fnObj, x) - (k * x + b);
+
+        let scanMin = Math.min(-20, viewXMin - 5, line.p1.x - 2, line.p2.x - 2);
+        let scanMax = Math.max(20, viewXMax + 5, line.p1.x + 2, line.p2.x + 2);
+
+        if (line.kind === 'segment') {
+          scanMin = Math.min(line.p1.x, line.p2.x) - 0.05;
+          scanMax = Math.max(line.p1.x, line.p2.x) + 0.05;
+        }
+
+        const steps = 1000;
+        const dx = (scanMax - scanMin) / steps;
+
+        const addUniqueIntersection = (ix) => {
+          if (!isFinite(ix)) return;
+          const iy = k * ix + b;
+          const fy = evalFuncObj(fnObj, ix);
+          if (!isFinite(fy) || Math.abs(fy - iy) > 0.025) return;
+          if (!isPointOnLineGeometry(line, ix, iy)) return;
+          const dup = line.intersections.some(pt => pt.funcName === fnObj.name && Math.abs(pt.x - ix) < 1.2e-2);
+          if (!dup) line.intersections.push({ x: ix, y: iy, funcName: fnObj.name, funcColor: fnObj.color });
+        };
+
+        if (line.kind === 'tangent' && line.targetFuncId === fnObj.id && isFinite(line.x0)) {
+          addUniqueIntersection(line.x0);
+        }
+        if (line.snapToFunc && line.targetFuncId === fnObj.id) {
+          addUniqueIntersection(line.p1.x);
+          addUniqueIntersection(line.p2.x);
+        }
+
+        let prevX = scanMin;
+        let prevH = h(prevX);
+
+        for (let i = 1; i <= steps; i++) {
+          const curX = scanMin + i * dx;
+          const curH = h(curX);
+
+          if (isFinite(prevH) && isFinite(curH)) {
+            if (Math.abs(curH) < 1e-7) {
+              addUniqueIntersection(curX);
+            } else if (prevH * curH < 0 && isFuncContinuousOnSegment(fnObj, prevX, curX, evalFuncObj(fnObj, prevX), evalFuncObj(fnObj, curX))) {
+              const rx = refineRootBisection(h, prevX, curX);
+              if (rx !== null) addUniqueIntersection(rx);
+            } else if (Math.abs(curH) < Math.abs(prevH) && Math.abs(curH) < 0.05) {
+              const nextH = h(curX + dx);
+              if (isFinite(nextH) && Math.abs(curH) <= Math.abs(nextH)) {
+                let a = prevX, c = curX + dx;
+                for (let m = 0; m < 22; m++) {
+                  const m1 = a + (c - a) * 0.382;
+                  const m2 = a + (c - a) * 0.618;
+                  if (Math.abs(h(m1)) < Math.abs(h(m2))) c = m2; else a = m1;
+                }
+                const tx = 0.5 * (a + c);
+                if (Math.abs(h(tx)) < 1e-4) addUniqueIntersection(tx);
+              }
+            }
+          }
+          prevX = curX;
+          prevH = curH;
+        }
+      });
+
+      line.intersections.sort((a, b) => a.x - b.x);
+    }
+
+    function updateAllLinesIntersections() {
+      state.lines.forEach(line => computeLineIntersections(line));
+      renderLinesList();
+    }
+
+    /*************************************************************************
+     * 6. SIDEBAR UI RENDERING (MULTI-FUNCTION CARDS, PROPERTIES, LINES)
+     *************************************************************************/
+    function renderMultiFunctionCards() {
+      const container = document.getElementById('multiFuncCardsContainer');
+      container.innerHTML = '';
+
+      const activeFn = getActiveFunc();
+      document.getElementById('activeFuncIndicator').textContent = `焦点: ${activeFn.name}(x)`;
+      document.getElementById('keypadTargetHint').textContent = `(填入 ${activeFn.name})`;
+
+      const addBtn = document.getElementById('addNewFuncBtn');
+      if (state.functions.length >= 5) {
+        addBtn.classList.add('opacity-50', 'pointer-events-none');
+      } else {
+        addBtn.classList.remove('opacity-50', 'pointer-events-none');
+      }
+
+      state.functions.forEach((fnObj) => {
+        const isFocused = fnObj.id === state.activeFuncId;
+        const card = document.createElement('div');
+        card.className = `rounded-xl border transition-all p-2.5 ${
+          isFocused
+            ? 'bg-blue-50/35 border-blue-400 ring-2 ring-blue-500/15 shadow-sm'
+            : 'bg-white border-slate-200 hover:border-slate-300'
+        } ${!fnObj.visible ? 'opacity-75' : ''}`;
+
+        const statusHtml = fnObj.parseValid
+          ? `<span class="text-[10px] font-medium text-emerald-600 flex items-center gap-0.5"><i class="fa-solid fa-check"></i>正常</span>`
+          : `<span class="text-[10px] font-medium text-rose-600 flex items-center gap-0.5"><i class="fa-solid fa-triangle-exclamation"></i>语法待修正</span>`;
+
+        const deleteBtnHtml = state.functions.length > 2
+          ? `<button type="button" data-del-id="${fnObj.id}" class="del-func-btn text-slate-400 hover:text-rose-600 p-1 text-xs transition-colors" title="删除该函数">
+               <i class="fa-solid fa-trash-can"></i>
+             </button>`
+          : '';
+
+        card.innerHTML = `
+          <!-- Card Top Row: Function Label + Focus Badge on Left, Visibility Checkbox on Right -->
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-2 cursor-pointer select-focus-trigger" data-func-id="${fnObj.id}">
+              <span class="w-3.5 h-3.5 rounded-full shadow-inner shrink-0" style="background-color: ${fnObj.color}"></span>
+              <span class="font-mono text-xs font-bold text-slate-800">${fnObj.name}(x)</span>
+              ${
+                isFocused
+                  ? `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-600 text-white">当前观察焦点</span>`
+                  : `<span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 hover:bg-slate-200">点击设为焦点</span>`
+              }
+              ${statusHtml}
+            </div>
+
+            <!-- Right-Top Corner Prominent Visibility Checkbox -->
+            <div class="flex items-center gap-1.5">
+              ${deleteBtnHtml}
+              <label class="flex items-center gap-1.5 px-2 py-1 rounded-lg border cursor-pointer transition-all select-none ${
+                fnObj.visible
+                  ? 'bg-emerald-50/90 border-emerald-300 text-emerald-800 shadow-sm'
+                  : 'bg-slate-100 border-slate-200 text-slate-500 hover:bg-slate-200/70'
+              }" title="勾选则在平面直角坐标系中显示该函数图像，取消勾选则隐藏">
+                <input
+                  type="checkbox"
+                  data-vis-id="${fnObj.id}"
+                  ${fnObj.visible ? 'checked' : ''}
+                  class="func-vis-checkbox w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                />
+                <span class="text-[11px] font-semibold">${fnObj.visible ? '显示图像' : '已隐藏'}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Expression Input Row -->
+          <div class="relative flex items-center">
+            <span class="absolute left-2.5 font-mono font-bold text-xs pointer-events-none" style="color: ${fnObj.color}">
+              ${fnObj.name}(x) =
+            </span>
+            <input
+              type="text"
+              id="funcInput-${fnObj.id}"
+              data-input-id="${fnObj.id}"
+              value="${fnObj.rawExpr}"
+              placeholder="输入初等函数，如 x^2 - 2x - 3"
+              class="func-expr-input w-full pl-14 pr-7 py-1.5 bg-slate-50/90 border border-slate-300 rounded-lg font-mono text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+            />
+            <button
+              type="button"
+              data-clear-id="${fnObj.id}"
+              class="clear-single-func-btn absolute right-2 text-slate-300 hover:text-slate-500 text-xs"
+              title="清空表达式"
+            >
+              <i class="fa-solid fa-circle-xmark"></i>
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      // Bind events for function cards
+      container.querySelectorAll('.select-focus-trigger').forEach(el => {
+        el.addEventListener('click', () => {
+          setActiveFunction(Number(el.dataset.funcId));
+        });
+      });
+
+      container.querySelectorAll('.func-vis-checkbox').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+          const id = Number(chk.dataset.visId);
+          const fnObj = getFuncById(id);
+          if (fnObj) {
+            fnObj.visible = e.target.checked;
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            computePairwiseFunctionIntersections(w);
+            updateAllLinesIntersections();
+            renderMultiFunctionCards();
+            renderAnalysisDashboard();
+            requestRender();
+          }
+        });
+      });
+
+      container.querySelectorAll('.func-expr-input').forEach(inp => {
+        inp.addEventListener('focus', () => {
+          const id = Number(inp.dataset.inputId);
+          if (state.activeFuncId !== id) {
+            state.activeFuncId = id;
+            updateFocusIndicatorsWithoutRebuildingInputs();
+          }
+        });
+        inp.addEventListener('input', (e) => {
+          const id = Number(inp.dataset.inputId);
+          updateSingleFunctionExpression(id, e.target.value);
+        });
+      });
+
+      container.querySelectorAll('.clear-single-func-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.clearId);
+          const inp = document.getElementById(`funcInput-${id}`);
+          if (inp) {
+            inp.value = '';
+            inp.focus();
+            updateSingleFunctionExpression(id, '');
+          }
+        });
+      });
+
+      container.querySelectorAll('.del-func-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = Number(btn.dataset.delId);
+          if (state.functions.length <= 2) return;
+          state.functions = state.functions.filter(f => f.id !== id);
+          // Re-number display names f₁, f₂, f₃...
+          state.functions.forEach((f, idx) => {
+            f.name = getFuncSubName(idx);
+          });
+          if (state.activeFuncId === id) {
+            state.activeFuncId = state.functions[0].id;
+          }
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          analyzeFunctionProperties(w);
+          renderMultiFunctionCards();
+          populateFunctionSelectDropdowns();
+          requestRender();
+        });
+      });
+
+      populateFunctionSelectDropdowns();
+    }
+
+    function updateFocusIndicatorsWithoutRebuildingInputs() {
+      const activeFn = getActiveFunc();
+      document.getElementById('activeFuncIndicator').textContent = `焦点: ${activeFn.name}(x)`;
+      document.getElementById('keypadTargetHint').textContent = `(填入 ${activeFn.name})`;
+      renderAnalysisDashboard();
+      requestRender();
+    }
+
+    function setActiveFunction(funcId) {
+      state.activeFuncId = Number(funcId);
+      renderMultiFunctionCards();
+      renderAnalysisDashboard();
+      updateTangentPreviewReadout();
+      requestRender();
+    }
+
+    function populateFunctionSelectDropdowns() {
+      const snapSelect = document.getElementById('snapTargetFuncSelect');
+      const tanSelect = document.getElementById('tangentTargetFuncSelect');
+      if (!snapSelect || !tanSelect) return;
+
+      const prevSnapVal = snapSelect.value || state.activeFuncId;
+      const prevTanVal = tanSelect.value || state.activeFuncId;
+
+      const optionsHtml = state.functions.map(f =>
+        `<option value="${f.id}">${f.name}(x)</option>`
+      ).join('');
+
+      snapSelect.innerHTML = optionsHtml;
+      tanSelect.innerHTML = optionsHtml;
+
+      if (state.functions.some(f => f.id === Number(prevSnapVal))) snapSelect.value = prevSnapVal;
+      else snapSelect.value = state.activeFuncId;
+
+      if (state.functions.some(f => f.id === Number(prevTanVal))) tanSelect.value = prevTanVal;
+      else tanSelect.value = state.activeFuncId;
+    }
+
+    function renderAnalysisDashboard() {
+      const activeFn = getActiveFunc();
+      const a = activeFn.analysis;
+      const visibleCount = state.functions.filter(f => f.visible && f.parseValid).length;
+
+      // Header badges
+      document.getElementById('headerFuncDisplay').textContent = `${activeFn.name}(x) = ${activeFn.rawExpr || '...'}`;
+      document.getElementById('headerVisibleCountBadge').textContent = `已显示 ${visibleCount} 个函数`;
+      document.getElementById('headerParityBadge').textContent = a.parity;
+
+      // Render Function Switcher Tabs in Module 2
+      const tabsContainer = document.getElementById('propsFuncTabs');
+      tabsContainer.innerHTML = '';
+      state.functions.forEach(fnObj => {
+        const isCurrent = fnObj.id === activeFn.id;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `px-2.5 py-1 rounded-lg text-xs font-mono font-semibold border transition-all flex items-center gap-1.5 ${
+          isCurrent
+            ? 'bg-slate-800 text-white border-slate-800 shadow-sm'
+            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+        }`;
+        btn.innerHTML = `
+          <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${fnObj.color}"></span>
+          <span>${fnObj.name}(x)</span>
+          ${!fnObj.visible ? '<i class="fa-solid fa-eye-slash text-[10px] opacity-60" title="当前未勾选显示"></i>' : ''}
+        `;
+        btn.addEventListener('click', () => setActiveFunction(fnObj.id));
+        tabsContainer.appendChild(btn);
+      });
+
+      // Titles with active function name
+      document.getElementById('propsTargetFuncTitle').textContent = `${activeFn.name}(x) 奇偶性与对称性`;
+      document.getElementById('monoTargetFuncTitle').textContent = `${activeFn.name}(x) 单调性区间分析`;
+      document.getElementById('specialPtsTargetTitle').innerHTML = `${activeFn.name}(x) 关键特征点 <span class="text-[11px] font-normal text-slate-400">(点击在图上定位)</span>`;
+
+      // Parity & Symmetry
+      const parityEl = document.getElementById('parityResultText');
+      parityEl.textContent = a.parity;
+      if (a.parity.includes('偶') || a.parity.includes('奇')) {
+        parityEl.className = 'text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800';
+      } else {
+        parityEl.className = 'text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800';
+      }
+      document.getElementById('symmetryResultText').textContent = a.symmetryText;
+
+      // Monotonicity Intervals
+      document.getElementById('incIntervalsBox').textContent =
+        a.incIntervals.length > 0 ? a.incIntervals.join(' ， ') : '当前视野无单调递增区间';
+      document.getElementById('decIntervalsBox').textContent =
+        a.decIntervals.length > 0 ? a.decIntervals.join(' ， ') : '当前视野无单调递减区间';
+
+      // Multi-Function Pairwise Intersections List
+      const interContainer = document.getElementById('funcIntersectionsContainer');
+      interContainer.innerHTML = '';
+      if (visibleCount < 2) {
+        interContainer.innerHTML = `<div class="text-xs text-slate-400 py-1.5 text-center bg-slate-50 rounded-lg">请勾选显示至少 2 个函数以观察函数间交点</div>`;
+      } else if (state.funcIntersections.length === 0) {
+        interContainer.innerHTML = `<div class="text-xs text-slate-400 py-1.5 text-center bg-slate-50 rounded-lg">当前已勾选显示的函数之间无公共交点</div>`;
+      } else {
+        state.funcIntersections.forEach((pt, idx) => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-indigo-50/60 hover:bg-indigo-100/80 border border-indigo-200/80 cursor-pointer transition-colors group';
+          row.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold px-1.5 py-0.5 rounded bg-indigo-600 text-white font-mono">
+                ${pt.fAName} ∩ ${pt.fBName}
+              </span>
+              <span class="font-mono text-xs font-semibold text-indigo-950">(${formatNum(pt.x)}, ${formatNum(pt.y)})</span>
+            </div>
+            <span class="text-[11px] text-indigo-500 group-hover:text-indigo-700 flex items-center gap-1">
+              <span>定位</span>
+              <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
+            </span>
+          `;
+          row.addEventListener('click', () => pulsePointOnCanvas(pt.x, pt.y));
+          interContainer.appendChild(row);
+        });
+      }
+
+      // Special Points Cards for Active Function
+      const container = document.getElementById('specialPointsContainer');
+      container.innerHTML = '';
+
+      const items = [];
+      a.roots.forEach((pt, idx) => {
+        items.push({
+          badge: `零点 X${idx + 1}`,
+          badgeCls: 'bg-amber-100 text-amber-800 border-amber-200',
+          coord: `(${formatNum(pt.x)}, 0)`,
+          x: pt.x,
+          y: 0
+        });
+      });
+
+      if (a.yIntercept) {
+        items.push({
+          badge: 'Y轴截距',
+          badgeCls: 'bg-sky-100 text-sky-800 border-sky-200',
+          coord: `(0, ${formatNum(a.yIntercept.y)})`,
+          x: 0,
+          y: a.yIntercept.y
+        });
+      }
+
+      a.extrema.forEach((pt) => {
+        items.push({
+          badge: pt.kind,
+          badgeCls: pt.kind === '极大值点'
+            ? 'bg-rose-100 text-rose-800 border-rose-200'
+            : 'bg-emerald-100 text-emerald-800 border-emerald-200',
+          coord: `(${formatNum(pt.x)}, ${formatNum(pt.y)})`,
+          x: pt.x,
+          y: pt.y
+        });
+      });
+
+      if (items.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-400 py-2 text-center bg-slate-50 rounded-lg">当前视野内暂无零点或极值点</div>`;
+        return;
+      }
+
+      items.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50/70 border border-slate-200/80 cursor-pointer transition-colors group';
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded border ${item.badgeCls}">${item.badge}</span>
+            <span class="font-mono text-xs font-semibold text-slate-800 group-hover:text-blue-700">${item.coord}</span>
+          </div>
+          <span class="text-[11px] text-slate-400 group-hover:text-blue-600 flex items-center gap-1">
+            <span>定位</span>
+            <i class="fa-solid fa-location-crosshairs text-[10px]"></i>
+          </span>
+        `;
+        row.addEventListener('click', () => {
+          pulsePointOnCanvas(item.x, item.y);
+        });
+        container.appendChild(row);
+      });
+    }
+
+    function renderLinesList() {
+      const container = document.getElementById('linesListContainer');
+      const countBadge = document.getElementById('linesCountBadge');
+      countBadge.textContent = state.lines.length;
+      container.innerHTML = '';
+
+      if (state.lines.length === 0) {
+        container.innerHTML = `
+          <div class="text-xs text-slate-400 py-4 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            暂未创建自定义线条，可在上方输入坐标或直接在画布点击作图
+          </div>
+        `;
+        return;
+      }
+
+      const kindLabels = {
+        line: '直线',
+        segment: '线段',
+        ray: '射线',
+        tangent: '切线'
+      };
+
+      state.lines.forEach((line, idx) => {
+        const info = line.analytics || getLineAnalytics(line);
+        const targetFn = getFuncById(line.targetFuncId || state.activeFuncId);
+        const card = document.createElement('div');
+        card.className = `p-2.5 rounded-xl border transition-all ${line.visible ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-50 border-slate-200/60 opacity-60'}`;
+
+        // Intersections HTML with function labels
+        let interHtml = '';
+        if (line.intersections && line.intersections.length > 0) {
+          const pills = line.intersections.map((pt, i) => `
+            <button type="button" data-ix="${pt.x}" data-iy="${pt.y}" class="locate-inter-btn inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 border border-fuchsia-200 font-mono text-[11px] font-semibold transition-colors">
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color:${pt.funcColor || '#c026d3'}"></span>
+              <span>∩${pt.funcName || 'f'}: (${formatNum(pt.x)}, ${formatNum(pt.y)})</span>
+            </button>
+          `).join('');
+          interHtml = `
+            <div class="mt-2 pt-2 border-t border-slate-100">
+              <div class="text-[11px] font-semibold text-fuchsia-700 mb-1 flex items-center gap-1">
+                <i class="fa-solid fa-bullseye text-[10px]"></i>
+                与可见函数交点 (${line.intersections.length}个):
+              </div>
+              <div class="flex flex-wrap gap-1">${pills}</div>
+            </div>
+          `;
+        } else {
+          interHtml = `
+            <div class="mt-1.5 pt-1.5 border-t border-slate-100 text-[11px] text-slate-400">
+              与当前可见函数无交点
+            </div>
+          `;
+        }
+
+        const endpointsDesc = line.kind === 'tangent'
+          ? `${targetFn.name}切点 x₀ = ${formatNum(line.x0)} (${formatNum(line.p1.x)}, ${formatNum(line.p1.y)})`
+          : `P₁(${formatNum(line.p1.x)}, ${formatNum(line.p1.y)}) → P₂(${formatNum(line.p2.x)}, ${formatNum(line.p2.y)})`;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <input type="color" value="${line.color}" data-id="${line.id}" class="line-color-input w-4 h-4 rounded cursor-pointer border-0 bg-transparent shrink-0" title="修改线条颜色" />
+              <span class="text-[11px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 shrink-0">
+                L${idx + 1} · ${kindLabels[line.kind] || '直线'}${line.snapToFunc ? `(${targetFn.name}割线)` : ''}
+              </span>
+              <span class="font-mono text-xs font-bold text-slate-800 truncate selectable-text">${info.eqText}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" data-id="${line.id}" class="toggle-line-btn p-1 text-slate-400 hover:text-slate-700 text-xs" title="显示/隐藏">
+                <i class="fa-solid ${line.visible ? 'fa-eye' : 'fa-eye-slash'}"></i>
+              </button>
+              <button type="button" data-id="${line.id}" class="delete-line-btn p-1 text-slate-400 hover:text-rose-600 text-xs" title="删除此线条">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-slate-500 font-mono">
+            <span>${endpointsDesc}</span>
+            <span>斜率 k = ${info.slopeText}</span>
+          </div>
+          ${interHtml}
+        `;
+
+        container.appendChild(card);
+      });
+
+      // Attach listeners for dynamic line list controls
+      container.querySelectorAll('.toggle-line-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.id);
+          const target = state.lines.find(l => l.id === id);
+          if (target) {
+            target.visible = !target.visible;
+            renderLinesList();
+            requestRender();
+          }
+        });
+      });
+
+      container.querySelectorAll('.delete-line-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.dataset.id);
+          state.lines = state.lines.filter(l => l.id !== id);
+          renderLinesList();
+          requestRender();
+        });
+      });
+
+      container.querySelectorAll('.line-color-input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+          const id = Number(inp.dataset.id);
+          const target = state.lines.find(l => l.id === id);
+          if (target) {
+            target.color = e.target.value;
+            requestRender();
+          }
+        });
+      });
+
+      container.querySelectorAll('.locate-inter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const ix = Number(btn.dataset.ix);
+          const iy = Number(btn.dataset.iy);
+          pulsePointOnCanvas(ix, iy);
+        });
+      });
+    }
+
+    function pulsePointOnCanvas(mathX, mathY) {
+      const canvas = document.getElementById('mathCanvas');
+      const sx = mathToScreenX(mathX);
+      const sy = mathToScreenY(mathY);
+      // If target point is outside comfortable viewport, pan gently to center it
+      if (sx < 80 || sx > canvas.width - 80 || sy < 80 || sy > canvas.height - 80) {
+        state.view.originX = canvas.width / 2 - mathX * state.view.scale;
+        state.view.originY = canvas.height / 2 + mathY * state.view.scale;
+      }
+      state.pulseTarget = { x: mathX, y: mathY, startTime: performance.now() };
+      requestRender();
+    }
+
+    /*************************************************************************
+     * 7. CANVAS RENDERING ENGINE (GRID, AXES, FUNCTION, MONOTONICITY, LINES)
+     *************************************************************************/
+    const canvas = document.getElementById('mathCanvas');
+    const ctx = canvas.getContext('2d');
+    let renderRequested = false;
+
+    function requestRender() {
+      if (!renderRequested) {
+        renderRequested = true;
+        requestAnimationFrame(renderScene);
+      }
+    }
+
+    function resizeCanvas() {
+      const wrapper = document.getElementById('canvasWrapper');
+      const rect = wrapper.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      const firstInit = canvas.width === 0 || state.view.originX === 0;
+      const prevCenterX = canvas.width / (2 * dpr);
+      const prevCenterY = canvas.height / (2 * dpr);
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      if (firstInit) {
+        state.view.originX = rect.width * 0.5;
+        state.view.originY = rect.height * 0.55;
+      } else {
+        state.view.originX += (rect.width / 2 - prevCenterX);
+        state.view.originY += (rect.height / 2 - prevCenterY);
+      }
+
+      analyzeFunctionProperties(rect.width);
+      requestRender();
+    }
+
+    // Calculate adaptive major grid step (1, 2, 5 * 10^n)
+    function getGridStep(scale) {
+      const targetPx = 85;
+      const rawStep = targetPx / scale;
+      const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      const residual = rawStep / mag;
+      if (residual > 5) return 10 * mag;
+      if (residual > 2) return 5 * mag;
+      if (residual > 1) return 2 * mag;
+      return mag;
+    }
+
+    function renderScene() {
+      renderRequested = false;
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Background
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, w, h);
+
+      drawGridAndAxes(w, h);
+
+      // Draw all checked (visible) functions
+      const visibleFuncs = state.functions.filter(f => f.visible && f.parseValid);
+
+      if (state.showSymmetryAxis) {
+        drawSymmetryAxis(w, h);
+      }
+
+      // Draw non-focused visible functions first, then focused function on top
+      visibleFuncs.forEach(fnObj => {
+        if (fnObj.id !== state.activeFuncId) {
+          drawSingleFunctionCurve(fnObj, w, h, false);
+        }
+      });
+      const activeFn = getActiveFunc();
+      if (activeFn && activeFn.visible && activeFn.parseValid) {
+        drawSingleFunctionCurve(activeFn, w, h, true);
+      }
+
+      if (state.showSpecialPoints) {
+        drawFunctionSpecialPoints(w, h);
+        drawPairwiseFunctionIntersections(w, h);
+      }
+
+      drawCustomLinesAndIntersections(w, h);
+      drawFreehandBrushStrokes();
+      drawInteractiveOverlays(w, h);
+
+      if (state.pulseTarget) {
+        const elapsed = performance.now() - state.pulseTarget.startTime;
+        if (elapsed < 1800) {
+          requestRender();
+        } else {
+          state.pulseTarget = null;
+        }
+      }
+    }
+
+    function drawGridAndAxes(w, h) {
+      const { originX, originY, scale } = state.view;
+      const majorStep = getGridStep(scale);
+      const minorStep = majorStep / 5;
+
+      const xMin = screenToMathX(0);
+      const xMax = screenToMathX(w);
+      const yMin = screenToMathY(h);
+      const yMax = screenToMathY(0);
+
+      // 1. Minor Grid Lines
+      ctx.beginPath();
+      ctx.strokeStyle = '#eef2f6';
+      ctx.lineWidth = 1;
+
+      const firstMinorX = Math.floor(xMin / minorStep) * minorStep;
+      for (let x = firstMinorX; x <= xMax; x += minorStep) {
+        const sx = Math.round(mathToScreenX(x)) + 0.5;
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, h);
+      }
+      const firstMinorY = Math.floor(yMin / minorStep) * minorStep;
+      for (let y = firstMinorY; y <= yMax; y += minorStep) {
+        const sy = Math.round(mathToScreenY(y)) + 0.5;
+        ctx.moveTo(0, sy);
+        ctx.lineTo(w, sy);
+      }
+      ctx.stroke();
+
+      // 2. Major Grid Lines
+      ctx.beginPath();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+
+      const firstMajorX = Math.floor(xMin / majorStep) * majorStep;
+      for (let x = firstMajorX; x <= xMax; x += majorStep) {
+        if (Math.abs(x) < 1e-9) continue;
+        const sx = Math.round(mathToScreenX(x)) + 0.5;
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, h);
+      }
+      const firstMajorY = Math.floor(yMin / majorStep) * majorStep;
+      for (let y = firstMajorY; y <= yMax; y += majorStep) {
+        if (Math.abs(y) < 1e-9) continue;
+        const sy = Math.round(mathToScreenY(y)) + 0.5;
+        ctx.moveTo(0, sy);
+        ctx.lineTo(w, sy);
+      }
+      ctx.stroke();
+
+      // 3. Coordinate Axes (X & Y)
+      ctx.beginPath();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.8;
+
+      // X Axis
+      ctx.moveTo(0, originY);
+      ctx.lineTo(w, originY);
+      // Y Axis
+      ctx.moveTo(originX, 0);
+      ctx.lineTo(originX, h);
+      ctx.stroke();
+
+      // Axis Arrows
+      ctx.fillStyle = '#334155';
+      // X-axis arrow (right)
+      ctx.beginPath();
+      ctx.moveTo(w - 2, originY);
+      ctx.lineTo(w - 11, originY - 4.5);
+      ctx.lineTo(w - 11, originY + 4.5);
+      ctx.closePath();
+      ctx.fill();
+
+      // Y-axis arrow (top)
+      ctx.beginPath();
+      ctx.moveTo(originX, 2);
+      ctx.lineTo(originX - 4.5, 11);
+      ctx.lineTo(originX + 4.5, 11);
+      ctx.closePath();
+      ctx.fill();
+
+      // Axis Labels ("x", "y", "O")
+      ctx.font = 'italic 600 13px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#1e293b';
+      ctx.fillText('x', w - 18, originY - 10);
+      ctx.fillText('y', originX + 12, 18);
+      ctx.font = '600 12px "Inter", sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.fillText('O', originX - 16, originY + 16);
+
+      // 4. Tick Numbers along X & Y axes
+      ctx.font = '500 11px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#64748b';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      const clampedOriginY = Math.max(12, Math.min(h - 24, originY));
+      for (let x = firstMajorX; x <= xMax; x += majorStep) {
+        if (Math.abs(x) < 1e-9) continue;
+        const sx = mathToScreenX(x);
+        if (sx < 25 || sx > w - 25) continue;
+        ctx.beginPath();
+        ctx.moveTo(sx, originY - 3.5);
+        ctx.lineTo(sx, originY + 3.5);
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.fillText(formatNum(x, 3), sx, clampedOriginY + 6);
+      }
+
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      const clampedOriginX = Math.max(36, Math.min(w - 12, originX));
+      for (let y = firstMajorY; y <= yMax; y += majorStep) {
+        if (Math.abs(y) < 1e-9) continue;
+        const sy = mathToScreenY(y);
+        if (sy < 20 || sy > h - 20) continue;
+        ctx.beginPath();
+        ctx.moveTo(originX - 3.5, sy);
+        ctx.lineTo(originX + 3.5, sy);
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.fillText(formatNum(y, 3), clampedOriginX - 7, sy);
+      }
+    }
+
+    function drawSymmetryAxis(w, h) {
+      const activeFn = getActiveFunc();
+      if (!activeFn || !activeFn.visible || !activeFn.parseValid) return;
+      const symX = activeFn.analysis.symmetryAxisX;
+      if (symX === null || !isFinite(symX)) return;
+      const sx = mathToScreenX(symX);
+      if (sx < 0 || sx > w) return;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.setLineDash([6, 5]);
+      ctx.strokeStyle = activeFn.color || '#6366f1';
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(sx, 0);
+      ctx.lineTo(sx, h);
+      ctx.stroke();
+
+      const label = `${activeFn.name} 对称轴 x = ${formatNum(symX)}`;
+      ctx.font = '600 11px "Inter", sans-serif';
+      const tw = ctx.measureText(label).width + 14;
+      ctx.fillStyle = 'rgba(238, 242, 255, 0.92)';
+      ctx.strokeStyle = '#a5b4fc';
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(sx - tw / 2, 56, tw, 22, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#4338ca';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, sx, 67);
+      ctx.restore();
+    }
+
+    function drawSingleFunctionCurve(fnObj, w, h, isFocused) {
+      const stepPx = 1.5;
+      const arrowPositions = [];
+      let labelPos = null;
+
+      let prevX = null, prevY = null, prevSx = null, prevSy = null;
+      let currentPathColor = null;
+
+      const useMonoColoring = isFocused && state.showMonotonic;
+
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = isFocused ? 3.2 : 2.5;
+
+      const flushSegment = (sx1, sy1, sx2, sy2, color) => {
+        if (currentPathColor !== color) {
+          if (currentPathColor !== null) ctx.stroke();
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          currentPathColor = color;
+          ctx.moveTo(sx1, sy1);
+        }
+        ctx.lineTo(sx2, sy2);
+      };
+
+      for (let sx = 0; sx <= w; sx += stepPx) {
+        const x = screenToMathX(sx);
+        const y = evalFuncObj(fnObj, x);
+        const sy = mathToScreenY(y);
+
+        const valid = isFinite(y) && sy >= -h * 2 && sy <= h * 3;
+        if (valid && prevX !== null && isFuncContinuousOnSegment(fnObj, prevX, x, prevY, y)) {
+          let segColor = fnObj.color;
+          const dy = y - prevY;
+          if (useMonoColoring) {
+            if (dy > 1e-6) segColor = '#f43f5e';      // Rose Red for Increasing ↗
+            else if (dy < -1e-6) segColor = '#10b981'; // Emerald Green for Decreasing ↘
+            else segColor = fnObj.color;
+          }
+          flushSegment(prevSx, prevSy, sx, sy, segColor);
+
+          // Pick a clean on-screen position to place the function name badge (e.g. f₁(x), f₂(x))
+          if (!labelPos && sx > w * 0.62 && sx < w - 90 && sy > 75 && sy < h - 75) {
+            labelPos = { sx, sy };
+          }
+
+          if (useMonoColoring && Math.floor(sx / 140) !== Math.floor(prevSx / 140) && sy > 50 && sy < h - 50 && sx > 60 && sx < w - 60) {
+            const angle = Math.atan2(sy - prevSy, sx - prevSx);
+            const dir = dy > 1e-6 ? 'inc' : (dy < -1e-6 ? 'dec' : null);
+            if (dir) {
+              arrowPositions.push({ sx, sy, angle, dir, color: segColor });
+            }
+          }
+        } else {
+          if (currentPathColor !== null) {
+            ctx.stroke();
+            currentPathColor = null;
+          }
+        }
+
+        if (valid) {
+          if (!labelPos && sx > 70 && sx < w - 80 && sy > 75 && sy < h - 75) {
+            labelPos = { sx, sy };
+          }
+          prevX = x;
+          prevY = y;
+          prevSx = sx;
+          prevSy = sy;
+        } else {
+          prevX = null;
+          prevY = null;
+        }
+      }
+
+      if (currentPathColor !== null) {
+        ctx.stroke();
+      }
+
+      // Draw directional arrows along monotonic segments for focused function
+      if (useMonoColoring) {
+        arrowPositions.forEach(ar => {
+          ctx.save();
+          ctx.translate(ar.sx, ar.sy);
+          ctx.rotate(ar.angle);
+          ctx.fillStyle = ar.color;
+          ctx.beginPath();
+          ctx.moveTo(7, 0);
+          ctx.lineTo(-5, -5);
+          ctx.lineTo(-2.5, 0);
+          ctx.lineTo(-5, 5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        });
+      }
+
+      // Draw Function Identity Tag directly near its curve (e.g. "f₁(x)")
+      if (labelPos) {
+        const tagText = `${fnObj.name}(x)`;
+        ctx.font = '700 11px "JetBrains Mono", monospace';
+        const tw = ctx.measureText(tagText).width + 12;
+        const th = 20;
+        const bx = labelPos.sx + 8;
+        const by = labelPos.sy - 24;
+
+        ctx.fillStyle = fnObj.color;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, tw, th, 6);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(tagText, bx + tw / 2, by + th / 2);
+      }
+
+      ctx.restore();
+    }
+
+    function drawPointMarkerWithLabel(sx, sy, color, labelText, offsetY = -14) {
+      ctx.save();
+      // Outer halo
+      ctx.beginPath();
+      ctx.arc(sx, sy, 6.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fill();
+
+      // Inner colored dot
+      ctx.beginPath();
+      ctx.arc(sx, sy, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      if (labelText) {
+        ctx.font = '600 11px "JetBrains Mono", "Inter", sans-serif';
+        const paddingX = 6;
+        const textWidth = ctx.measureText(labelText).width;
+        const boxW = textWidth + paddingX * 2;
+        const boxH = 20;
+        const bx = sx - boxW / 2;
+        const by = sy + offsetY - boxH / 2;
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, boxW, boxH, 5);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, sx, by + boxH / 2);
+      }
+      ctx.restore();
+    }
+
+    function drawFunctionSpecialPoints(w, h) {
+      // Draw detailed special points with labels for the focused function (if visible),
+      // and subtle dots for other visible functions so the canvas stays clean and readable
+      state.functions.forEach(fnObj => {
+        if (!fnObj.visible || !fnObj.parseValid) return;
+        const isFocused = fnObj.id === state.activeFuncId;
+        const a = fnObj.analysis;
+
+        // 1. Y-Intercept
+        if (a.yIntercept) {
+          const sx = mathToScreenX(0);
+          const sy = mathToScreenY(a.yIntercept.y);
+          if (sx >= -20 && sx <= w + 20 && sy >= -20 && sy <= h + 20) {
+            drawPointMarkerWithLabel(
+              sx, sy,
+              isFocused ? '#0284c7' : fnObj.color,
+              isFocused ? `${fnObj.name}截距(0, ${formatNum(a.yIntercept.y)})` : null,
+              18
+            );
+          }
+        }
+
+        // 2. Roots (Zeroes)
+        a.roots.forEach((pt) => {
+          const sx = mathToScreenX(pt.x);
+          const sy = mathToScreenY(0);
+          if (sx >= -20 && sx <= w + 20 && sy >= -20 && sy <= h + 20) {
+            drawPointMarkerWithLabel(
+              sx, sy,
+              isFocused ? '#f59e0b' : fnObj.color,
+              isFocused ? `${fnObj.name}零点(${formatNum(pt.x)}, 0)` : null,
+              -16
+            );
+          }
+        });
+
+        // 3. Extrema (Vertices)
+        a.extrema.forEach((pt) => {
+          const sx = mathToScreenX(pt.x);
+          const sy = mathToScreenY(pt.y);
+          if (sx >= -20 && sx <= w + 20 && sy >= -20 && sy <= h + 20) {
+            const offset = pt.kind === '极大值点' ? -18 : 20;
+            const color = isFocused ? (pt.kind === '极大值点' ? '#e11d48' : '#059669') : fnObj.color;
+            drawPointMarkerWithLabel(
+              sx, sy,
+              color,
+              isFocused ? `${fnObj.name}${pt.kind}(${formatNum(pt.x)}, ${formatNum(pt.y)})` : null,
+              offset
+            );
+          }
+        });
+      });
+    }
+
+    function drawPairwiseFunctionIntersections(w, h) {
+      if (!state.funcIntersections || state.funcIntersections.length === 0) return;
+
+      ctx.save();
+      state.funcIntersections.forEach((pt) => {
+        const ix = mathToScreenX(pt.x);
+        const iy = mathToScreenY(pt.y);
+        if (ix < -20 || ix > w + 20 || iy < -20 || iy > h + 20) return;
+
+        // Outer indigo glow
+        ctx.beginPath();
+        ctx.arc(ix, iy, 9.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(79, 70, 229, 0.22)';
+        ctx.fill();
+
+        // Core indigo dot
+        ctx.beginPath();
+        ctx.arc(ix, iy, 5.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#4f46e5';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        // Badge label e.g. "f₁∩f₂ (2, 3)"
+        const label = `${pt.fAName}∩${pt.fBName}(${formatNum(pt.x)}, ${formatNum(pt.y)})`;
+        ctx.font = '700 11px "JetBrains Mono", sans-serif';
+        const tw = ctx.measureText(label).width + 12;
+        const bx = ix - tw / 2;
+        const by = iy + 12;
+
+        ctx.fillStyle = '#eef2ff';
+        ctx.strokeStyle = '#818cf8';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, tw, 20, 5);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#312e81';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, ix, by + 10);
+      });
+      ctx.restore();
+    }
+
+    function drawCustomLinesAndIntersections(w, h) {
+      state.lines.forEach((line) => {
+        if (!line.visible) return;
+        drawSingleGeometricLine(line, w, h, false);
+      });
+    }
+
+    function drawSingleGeometricLine(line, w, h, isPreview) {
+      const info = line.analytics || getLineAnalytics(line);
+      if (!info.valid) return;
+
+      const sx1 = mathToScreenX(line.p1.x);
+      const sy1 = mathToScreenY(line.p1.y);
+      const sx2 = mathToScreenX(line.p2.x);
+      const sy2 = mathToScreenY(line.p2.y);
+
+      ctx.save();
+      ctx.strokeStyle = line.color || '#7c3aed';
+      ctx.lineWidth = isPreview ? 2 : 2.4;
+      if (isPreview) ctx.setLineDash([6, 4]);
+
+      ctx.beginPath();
+      if (line.kind === 'segment') {
+        ctx.moveTo(sx1, sy1);
+        ctx.lineTo(sx2, sy2);
+      } else if (line.kind === 'ray') {
+        const dx = sx2 - sx1;
+        const dy = sy2 - sy1;
+        const len = Math.hypot(dx, dy);
+        if (len > 1e-3) {
+          const factor = Math.max(w, h) * 3 / len;
+          ctx.moveTo(sx1, sy1);
+          ctx.lineTo(sx1 + dx * factor, sy1 + dy * factor);
+        }
+      } else {
+        // Infinite Line or Tangent Line
+        if (info.isVertical) {
+          ctx.moveTo(sx1, 0);
+          ctx.lineTo(sx1, h);
+        } else {
+          const xLeft = screenToMathX(0);
+          const xRight = screenToMathX(w);
+          const yLeft = info.k * xLeft + info.b;
+          const yRight = info.k * xRight + info.b;
+          ctx.moveTo(0, mathToScreenY(yLeft));
+          ctx.lineTo(w, mathToScreenY(yRight));
+        }
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw Draggable Endpoints P1 & P2 (or Tangent Point x0)
+      const drawEndpoint = (px, py, tag) => {
+        ctx.beginPath();
+        ctx.arc(px, py, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = line.color || '#7c3aed';
+        ctx.stroke();
+
+        if (tag) {
+          ctx.font = '700 10.5px "JetBrains Mono", monospace';
+          ctx.fillStyle = line.color || '#7c3aed';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(tag, px + 7, py - 5);
+        }
+      };
+
+      if (line.kind === 'tangent') {
+        drawEndpoint(sx1, sy1, `切点(${formatNum(line.p1.x)}, ${formatNum(line.p1.y)})`);
+      } else {
+        drawEndpoint(sx1, sy1, `P₁(${formatNum(line.p1.x)}, ${formatNum(line.p1.y)})`);
+        drawEndpoint(sx2, sy2, `P₂(${formatNum(line.p2.x)}, ${formatNum(line.p2.y)})`);
+      }
+
+      // Draw Line Equation Label near midpoint
+      const midSx = 0.5 * (sx1 + sx2);
+      const midSy = 0.5 * (sy1 + sy2);
+      if (midSx > 40 && midSx < w - 40 && midSy > 40 && midSy < h - 40) {
+        const eqLabel = info.eqText;
+        ctx.font = '600 11px "JetBrains Mono", monospace';
+        const tw = ctx.measureText(eqLabel).width + 12;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.strokeStyle = line.color || '#7c3aed';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(midSx - tw / 2, midSy - 24, tw, 19, 5);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = line.color || '#7c3aed';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(eqLabel, midSx, midSy - 14.5);
+      }
+
+      // Draw Highlighted Intersection Points between this Line and Visible Functions
+      if (line.intersections && line.intersections.length > 0) {
+        line.intersections.forEach((pt) => {
+          const ix = mathToScreenX(pt.x);
+          const iy = mathToScreenY(pt.y);
+          if (ix < -20 || ix > w + 20 || iy < -20 || iy > h + 20) return;
+
+          // Outer Fuchsia Glow
+          ctx.beginPath();
+          ctx.arc(ix, iy, 8.5, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(217, 70, 239, 0.22)';
+          ctx.fill();
+
+          // Inner Fuchsia Core
+          ctx.beginPath();
+          ctx.arc(ix, iy, 5, 0, Math.PI * 2);
+          ctx.fillStyle = '#c026d3';
+          ctx.fill();
+          ctx.lineWidth = 1.8;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+
+          // Intersection Coordinate Tag
+          const interTag = `∩${pt.funcName || 'f'}(${formatNum(pt.x)}, ${formatNum(pt.y)})`;
+          ctx.font = '700 10.5px "JetBrains Mono", sans-serif';
+          const tw = ctx.measureText(interTag).width + 10;
+          const bx = ix - tw / 2;
+          const by = iy + 10;
+
+          ctx.fillStyle = '#fdf4ff';
+          ctx.strokeStyle = '#e879f9';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.roundRect(bx, by, tw, 18, 4);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#86198f';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(interTag, ix, by + 9);
+        });
+      }
+
+      ctx.restore();
+    }
+
+    function drawFreehandBrushStrokes() {
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3;
+
+      const allStrokes = [...state.brushStrokes];
+      if (state.activeStroke) allStrokes.push(state.activeStroke);
+
+      allStrokes.forEach((stroke) => {
+        if (stroke.points.length < 2) return;
+        ctx.beginPath();
+        ctx.strokeStyle = stroke.color;
+        stroke.points.forEach((pt, idx) => {
+          const sx = mathToScreenX(pt.x);
+          const sy = mathToScreenY(pt.y);
+          if (idx === 0) ctx.moveTo(sx, sy);
+          else ctx.lineTo(sx, sy);
+        });
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
+    function drawInteractiveOverlays(w, h) {
+      // 1. Pulse animation when locating a point from sidebar
+      if (state.pulseTarget) {
+        const elapsed = performance.now() - state.pulseTarget.startTime;
+        const progress = (elapsed % 600) / 600;
+        const sx = mathToScreenX(state.pulseTarget.x);
+        const sy = mathToScreenY(state.pulseTarget.y);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sx, sy, 6 + progress * 26, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(37, 99, 235, ${1 - progress})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (!state.mousePx.inside) return;
+
+      const mx = state.mousePx.x;
+      const my = state.mousePx.y;
+
+      // 2. Subtle Crosshair at Mouse Position (or Snapped Position)
+      const targetSx = state.snappedPoint ? mathToScreenX(state.snappedPoint.x) : mx;
+      const targetSy = state.snappedPoint ? mathToScreenY(state.snappedPoint.y) : my;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.45)';
+      ctx.lineWidth = 1;
+      ctx.moveTo(targetSx, 0);
+      ctx.lineTo(targetSx, h);
+      ctx.moveTo(0, targetSy);
+      ctx.lineTo(w, targetSy);
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Mode-Specific Live Previews
+      if (state.mode === 'twopoint' && state.tempFirstPoint) {
+        const p2Math = state.snappedPoint
+          ? { x: state.snappedPoint.x, y: state.snappedPoint.y }
+          : { x: state.mouseMath.x, y: state.mouseMath.y };
+
+        const snapFunc = document.getElementById('canvasDrawSnapFuncCheck').checked;
+        const activeFn = getActiveFunc();
+        if (snapFunc && isFinite(evalFuncObj(activeFn, p2Math.x))) {
+          p2Math.y = evalFuncObj(activeFn, p2Math.x);
+        }
+
+        const previewLine = {
+          kind: document.getElementById('canvasDrawKindSelect').value,
+          p1: { ...state.tempFirstPoint },
+          p2: p2Math,
+          snapToFunc: snapFunc,
+          targetFuncId: state.activeFuncId,
+          color: '#7c3aed',
+          visible: true,
+          intersections: []
+        };
+        computeLineIntersections(previewLine);
+        drawSingleGeometricLine(previewLine, w, h, true);
+      } else if (state.mode === 'tangent') {
+        const x0 = state.snappedPoint ? state.snappedPoint.x : state.mouseMath.x;
+        const targetFuncId = state.snappedPoint?.funcId || state.activeFuncId;
+        const targetFn = getFuncById(targetFuncId);
+        const y0 = evalFuncObj(targetFn, x0);
+        if (isFinite(y0)) {
+          const previewTangent = {
+            kind: 'tangent',
+            targetFuncId: targetFn.id,
+            x0,
+            p1: { x: x0, y: y0 },
+            p2: { x: x0 + 1, y: y0 },
+            color: '#f59e0b',
+            visible: true,
+            intersections: []
+          };
+          computeLineIntersections(previewTangent);
+          drawSingleGeometricLine(previewTangent, w, h, true);
+        }
+      }
+
+      // 4. Snapped Point Highlight Ring & Floating Tooltip
+      if (state.snappedPoint) {
+        const sp = state.snappedPoint;
+        const sx = mathToScreenX(sp.x);
+        const sy = mathToScreenY(sp.y);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.18)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(sx, sy, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = sp.color || '#2563eb';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        // Tooltip badge near cursor
+        const text = `${sp.label}: (${formatNum(sp.x, 2)}, ${formatNum(sp.y, 2)})`;
+        ctx.font = '600 11.5px "JetBrains Mono", "Inter", sans-serif';
+        const tw = ctx.measureText(text).width + 16;
+        const th = 24;
+        let tx = sx + 12;
+        let ty = sy - 32;
+        if (tx + tw > w - 10) tx = sx - tw - 12;
+        if (ty < 10) ty = sy + 12;
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        ctx.roundRect(tx, ty, tw, th, 6);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, tx + 8, ty + th / 2);
+        ctx.restore();
+      }
+    }
+
+    /*************************************************************************
+     * 8. MAGNETIC SNAP & CANVAS INTERACTION HANDLERS
+     *************************************************************************/
+    function findMagneticSnapPoint(px, py) {
+      const snapRadiusPx = 14;
+      let bestCandidate = null;
+      let bestDist = snapRadiusPx;
+
+      const checkCandidate = (mathX, mathY, label, color, funcId = null) => {
+        if (!isFinite(mathX) || !isFinite(mathY)) return;
+        const sx = mathToScreenX(mathX);
+        const sy = mathToScreenY(mathY);
+        const d = Math.hypot(px - sx, py - sy);
+        if (d < bestDist) {
+          bestDist = d;
+          bestCandidate = { x: mathX, y: mathY, label, color, funcId };
+        }
+      };
+
+      // Priority 1: Origin (0,0)
+      checkCandidate(0, 0, '原点 O', '#475569');
+
+      // Priority 2: Pairwise Function Intersections (f_i ∩ f_j)
+      state.funcIntersections.forEach(pt => {
+        checkCandidate(pt.x, pt.y, `${pt.fAName}∩${pt.fBName} 交点`, '#4f46e5');
+      });
+
+      // Priority 3: Line-Function Intersection Points
+      state.lines.forEach((line) => {
+        if (!line.visible) return;
+        (line.intersections || []).forEach((pt) => {
+          checkCandidate(pt.x, pt.y, `线与${pt.funcName || '函数'}交点`, '#c026d3');
+        });
+        checkCandidate(line.p1.x, line.p1.y, '线条端点 P₁', line.color);
+        if (line.kind !== 'tangent') {
+          checkCandidate(line.p2.x, line.p2.y, '线条端点 P₂', line.color);
+        }
+      });
+
+      // Priority 4: Special Points of all visible functions (Roots, Extrema, Y-Intercept)
+      state.functions.forEach(fnObj => {
+        if (!fnObj.visible || !fnObj.parseValid) return;
+        const a = fnObj.analysis;
+        if (a.yIntercept) checkCandidate(0, a.yIntercept.y, `${fnObj.name} Y轴截距`, '#0284c7', fnObj.id);
+        a.roots.forEach(r => checkCandidate(r.x, 0, `${fnObj.name} 零点`, '#f59e0b', fnObj.id));
+        a.extrema.forEach(e => checkCandidate(e.x, e.y, `${fnObj.name} ${e.kind}`, '#e11d48', fnObj.id));
+      });
+
+      if (bestCandidate) return bestCandidate;
+
+      // Priority 5: Snap directly onto any visible function curve f_i(x)
+      const mathX = screenToMathX(px);
+      let closestCurve = null;
+      let minCurveDist = 16;
+      state.functions.forEach(fnObj => {
+        if (!fnObj.visible || !fnObj.parseValid) return;
+        const mathY = evalFuncObj(fnObj, mathX);
+        if (isFinite(mathY)) {
+          const curveSy = mathToScreenY(mathY);
+          const d = Math.abs(py - curveSy);
+          if (d < minCurveDist) {
+            minCurveDist = d;
+            closestCurve = { x: mathX, y: mathY, label: `${fnObj.name}(x) 图像点`, color: fnObj.color, funcId: fnObj.id };
+          }
+        }
+      });
+      if (closestCurve) return closestCurve;
+
+      // Priority 6: Snap to integer grid intersection if very close
+      const nearIntX = Math.round(mathX);
+      const nearIntY = Math.round(screenToMathY(py));
+      const gx = mathToScreenX(nearIntX);
+      const gy = mathToScreenY(nearIntY);
+      if (Math.hypot(px - gx, py - gy) < 8) {
+        return { x: nearIntX, y: nearIntY, label: '整格点', color: '#64748b' };
+      }
+
+      return null;
+    }
+
+    function findDraggableLineEndpoint(px, py) {
+      const hitRadius = 12;
+      for (const line of state.lines) {
+        if (!line.visible) continue;
+        const sx1 = mathToScreenX(line.p1.x);
+        const sy1 = mathToScreenY(line.p1.y);
+        if (Math.hypot(px - sx1, py - sy1) <= hitRadius) {
+          return { line, ptKey: line.kind === 'tangent' ? 'x0' : 'p1' };
+        }
+        if (line.kind !== 'tangent') {
+          const sx2 = mathToScreenX(line.p2.x);
+          const sy2 = mathToScreenY(line.p2.y);
+          if (Math.hypot(px - sx2, py - sy2) <= hitRadius) {
+            return { line, ptKey: 'p2' };
+          }
+        }
+      }
+      return null;
+    }
+
+    function updateCursorStatusBar() {
+      const coordEl = document.getElementById('liveCoordDisplay');
+      const snapBadge = document.getElementById('snapTagBadge');
+      const snapText = document.getElementById('snapTagText');
+
+      if (state.snappedPoint) {
+        coordEl.textContent = `(${formatNum(state.snappedPoint.x, 2)}, ${formatNum(state.snappedPoint.y, 2)})`;
+        snapBadge.classList.remove('hidden');
+        snapBadge.classList.add('flex');
+        snapText.textContent = state.snappedPoint.label;
+      } else {
+        coordEl.textContent = `(${formatNum(state.mouseMath.x, 2)}, ${formatNum(state.mouseMath.y, 2)})`;
+        snapBadge.classList.add('hidden');
+        snapBadge.classList.remove('flex');
+      }
+    }
+
+    function setupCanvasEvents() {
+      const getPointerPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      };
+
+      canvas.addEventListener('pointerdown', (e) => {
+        const pos = getPointerPos(e);
+        state.mousePx = { x: pos.x, y: pos.y, inside: true };
+        state.mouseMath = { x: screenToMathX(pos.x), y: screenToMathY(pos.y) };
+        state.snappedPoint = findMagneticSnapPoint(pos.x, pos.y);
+
+        // Mode 1: Pan / Inspect / Drag Endpoints
+        if (state.mode === 'pan') {
+          const hitEndpoint = findDraggableLineEndpoint(pos.x, pos.y);
+          if (hitEndpoint) {
+            state.draggingEndpoint = hitEndpoint;
+            canvas.style.cursor = 'grabbing';
+            return;
+          }
+          state.isDraggingCanvas = true;
+          state.dragStartPx = { x: pos.x, y: pos.y };
+          state.dragStartOrigin = { x: state.view.originX, y: state.view.originY };
+          canvas.style.cursor = 'grabbing';
+        }
+        // Mode 2: Two-Point Direct Line Creation on Canvas
+        else if (state.mode === 'twopoint') {
+          const snapFunc = document.getElementById('canvasDrawSnapFuncCheck').checked;
+          const activeFn = getActiveFunc();
+          let ptX = state.snappedPoint ? state.snappedPoint.x : state.mouseMath.x;
+          let ptY = state.snappedPoint ? state.snappedPoint.y : state.mouseMath.y;
+          if (snapFunc && isFinite(evalFuncObj(activeFn, ptX))) {
+            ptY = evalFuncObj(activeFn, ptX);
+          }
+
+          if (!state.tempFirstPoint) {
+            state.tempFirstPoint = { x: ptX, y: ptY };
+            updateModeBanner('已确定点 P₁，请移动鼠标并点击第二个位置确定 P₂');
+          } else {
+            if (Math.hypot(ptX - state.tempFirstPoint.x, ptY - state.tempFirstPoint.y) > 1e-4) {
+              createCustomLine({
+                kind: document.getElementById('canvasDrawKindSelect').value,
+                p1: { ...state.tempFirstPoint },
+                p2: { x: ptX, y: ptY },
+                snapToFunc: snapFunc,
+                targetFuncId: activeFn.id
+              });
+            }
+            state.tempFirstPoint = null;
+            updateModeBanner('两点画线模式：请在坐标系上点击第一个点 P₁');
+          }
+          requestRender();
+        }
+        // Mode 3: Tangent Line Creation on Canvas
+        else if (state.mode === 'tangent') {
+          const x0 = state.snappedPoint ? state.snappedPoint.x : state.mouseMath.x;
+          const targetFuncId = state.snappedPoint?.funcId || state.activeFuncId;
+          const targetFn = getFuncById(targetFuncId);
+          const y0 = evalFuncObj(targetFn, x0);
+          if (isFinite(y0)) {
+            createCustomLine({
+              kind: 'tangent',
+              targetFuncId: targetFn.id,
+              x0: Math.round(x0 * 100) / 100,
+              p1: { x: x0, y: y0 },
+              p2: { x: x0 + 1, y: y0 }
+            });
+          }
+        }
+        // Mode 4: Freehand Brush Annotation
+        else if (state.mode === 'brush') {
+          const color = document.getElementById('brushColorPicker').value;
+          state.activeStroke = {
+            color,
+            points: [{ x: state.mouseMath.x, y: state.mouseMath.y }]
+          };
+          requestRender();
+        }
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+        const pos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+        state.mousePx = { x: pos.x, y: pos.y, inside };
+        state.mouseMath = { x: screenToMathX(pos.x), y: screenToMathY(pos.y) };
+
+        // Handle dragging a line endpoint
+        if (state.draggingEndpoint) {
+          const { line, ptKey } = state.draggingEndpoint;
+          const snap = findMagneticSnapPoint(pos.x, pos.y);
+          const nx = snap ? snap.x : Math.round(state.mouseMath.x * 20) / 20;
+          const ny = snap ? snap.y : Math.round(state.mouseMath.y * 20) / 20;
+          const targetFn = getFuncById(line.targetFuncId || state.activeFuncId);
+
+          if (ptKey === 'x0') {
+            line.x0 = nx;
+          } else {
+            line[ptKey].x = nx;
+            line[ptKey].y = line.snapToFunc && isFinite(evalFuncObj(targetFn, nx)) ? evalFuncObj(targetFn, nx) : ny;
+          }
+          computeLineIntersections(line);
+          renderLinesList();
+          requestRender();
+          return;
+        }
+
+        // Handle panning canvas
+        if (state.isDraggingCanvas) {
+          state.view.originX = state.dragStartOrigin.x + (pos.x - state.dragStartPx.x);
+          state.view.originY = state.dragStartOrigin.y + (pos.y - state.dragStartPx.y);
+          requestRender();
+          return;
+        }
+
+        // Handle active freehand brush stroke
+        if (state.mode === 'brush' && state.activeStroke) {
+          state.activeStroke.points.push({ x: state.mouseMath.x, y: state.mouseMath.y });
+          requestRender();
+          return;
+        }
+
+        if (inside) {
+          state.snappedPoint = findMagneticSnapPoint(pos.x, pos.y);
+          updateCursorStatusBar();
+          if (state.mode === 'pan') {
+            const overEndpt = findDraggableLineEndpoint(pos.x, pos.y);
+            canvas.style.cursor = overEndpt ? 'grab' : 'crosshair';
+          }
+          requestRender();
+        }
+      });
+
+      window.addEventListener('pointerup', () => {
+        if (state.isDraggingCanvas) {
+          state.isDraggingCanvas = false;
+          canvas.style.cursor = 'crosshair';
+          analyzeFunctionProperties(canvas.width / (window.devicePixelRatio || 1));
+          requestRender();
+        }
+        if (state.draggingEndpoint) {
+          state.draggingEndpoint = null;
+          canvas.style.cursor = 'crosshair';
+        }
+        if (state.activeStroke) {
+          if (state.activeStroke.points.length > 1) {
+            state.brushStrokes.push(state.activeStroke);
+            document.getElementById('clearBrushBtn').classList.remove('hidden');
+          }
+          state.activeStroke = null;
+          requestRender();
+        }
+      });
+
+      canvas.addEventListener('pointerleave', () => {
+        state.mousePx.inside = false;
+        state.snappedPoint = null;
+        requestRender();
+      });
+
+      // Mouse Wheel Zoom centered at cursor
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        const zoomFactor = e.deltaY < 0 ? 1.13 : 1 / 1.13;
+        zoomAtScreenPoint(mx, my, zoomFactor);
+      }, { passive: false });
+    }
+
+    function zoomAtScreenPoint(px, py, factor) {
+      const newScale = Math.max(state.view.minScale, Math.min(state.view.maxScale, state.view.scale * factor));
+      const actualFactor = newScale / state.view.scale;
+      state.view.originX = px - (px - state.view.originX) * actualFactor;
+      state.view.originY = py - (py - state.view.originY) * actualFactor;
+      state.view.scale = newScale;
+
+      analyzeFunctionProperties(canvas.width / (window.devicePixelRatio || 1));
+      requestRender();
+    }
+
+    /*************************************************************************
+     * 9. UI CONTROLS & WORKBENCH INITIALIZATION
+     *************************************************************************/
+    function compileAllFunctions() {
+      state.functions.forEach(fnObj => {
+        const res = compileFunction(fnObj.rawExpr);
+        fnObj.parseValid = res.valid;
+        fnObj.compiledFn = res.fn;
+      });
+    }
+
+    function updateSingleFunctionExpression(funcId, exprStr) {
+      const fnObj = getFuncById(funcId);
+      if (!fnObj) return;
+      fnObj.rawExpr = exprStr;
+      const res = compileFunction(exprStr);
+      fnObj.parseValid = res.valid;
+      fnObj.compiledFn = res.fn;
+
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      analyzeFunctionProperties(w);
+      updateTangentPreviewReadout();
+      syncTwoPtSnapInputs();
+      requestRender();
+    }
+
+    function applyExpressionToActiveFunction(exprStr) {
+      const activeFn = getActiveFunc();
+      activeFn.rawExpr = exprStr;
+      const inp = document.getElementById(`funcInput-${activeFn.id}`);
+      if (inp) inp.value = exprStr;
+      updateSingleFunctionExpression(activeFn.id, exprStr);
+      renderMultiFunctionCards();
+    }
+
+    function createCustomLine(opts) {
+      const color = opts.color || state.lineColors[(state.nextLineId - 1) % state.lineColors.length];
+      const newLine = {
+        id: state.nextLineId++,
+        kind: opts.kind || 'line',
+        targetFuncId: Number(opts.targetFuncId || state.activeFuncId),
+        p1: opts.p1 ? { ...opts.p1 } : { x: -2, y: 2 },
+        p2: opts.p2 ? { ...opts.p2 } : { x: 3, y: -1 },
+        snapToFunc: Boolean(opts.snapToFunc),
+        x0: opts.x0 ?? 2,
+        color,
+        visible: true,
+        intersections: []
+      };
+      computeLineIntersections(newLine);
+      state.lines.unshift(newLine);
+      renderLinesList();
+      requestRender();
+    }
+
+    function updateTangentPreviewReadout() {
+      const x0 = Number(document.getElementById('tangentX0Input').value);
+      const targetFuncId = Number(document.getElementById('tangentTargetFuncSelect')?.value || state.activeFuncId);
+      const targetFn = getFuncById(targetFuncId);
+      const y0 = evalFuncObj(targetFn, x0);
+      const k = evalFuncDerivative(targetFn, x0);
+      const previewEl = document.getElementById('tangentPreviewCoord');
+      if (isFinite(y0) && isFinite(k)) {
+        previewEl.textContent = `${targetFn.name}(${formatNum(x0)})=${formatNum(y0)}, k=${formatNum(k)}`;
+      } else {
+        previewEl.textContent = '该处无定义或不可导';
+      }
+    }
+
+    function syncTwoPtSnapInputs() {
+      const snapCheck = document.getElementById('snapPtsToFuncCheck');
+      const targetFuncId = Number(document.getElementById('snapTargetFuncSelect')?.value || state.activeFuncId);
+      const targetFn = getFuncById(targetFuncId);
+      const p1yIn = document.getElementById('p1yInput');
+      const p2yIn = document.getElementById('p2yInput');
+      if (snapCheck.checked) {
+        const x1 = Number(document.getElementById('p1xInput').value);
+        const x2 = Number(document.getElementById('p2xInput').value);
+        const y1 = evalFuncObj(targetFn, x1);
+        const y2 = evalFuncObj(targetFn, x2);
+        if (isFinite(y1)) p1yIn.value = formatNum(y1, 3);
+        if (isFinite(y2)) p2yIn.value = formatNum(y2, 3);
+        p1yIn.disabled = true;
+        p2yIn.disabled = true;
+        p1yIn.classList.add('opacity-60');
+        p2yIn.classList.add('opacity-60');
+      } else {
+        p1yIn.disabled = false;
+        p2yIn.disabled = false;
+        p1yIn.classList.remove('opacity-60');
+        p2yIn.classList.remove('opacity-60');
+      }
+    }
+
+    function updateModeBanner(text) {
+      const banner = document.getElementById('modeStatusBanner');
+      const bannerText = document.getElementById('modeBannerText');
+      if (!text) {
+        banner.classList.add('hidden');
+      } else {
+        banner.classList.remove('hidden');
+        bannerText.textContent = text;
+      }
+    }
+
+    function setCanvasInteractionMode(mode) {
+      state.mode = mode;
+      state.tempFirstPoint = null;
+
+      document.querySelectorAll('.canvas-mode-btn').forEach(btn => {
+        if (btn.dataset.mode === mode) {
+          btn.className = 'canvas-mode-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm transition-all';
+        } else {
+          btn.className = 'canvas-mode-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-100 transition-all';
+        }
+      });
+
+      const subBar = document.getElementById('canvasModeSubBar');
+      const brushBar = document.getElementById('canvasBrushSubBar');
+      subBar.classList.toggle('hidden', mode !== 'twopoint');
+      subBar.classList.toggle('flex', mode === 'twopoint');
+      brushBar.classList.toggle('hidden', mode !== 'brush');
+      brushBar.classList.toggle('flex', mode === 'brush');
+
+      if (mode === 'pan') {
+        updateModeBanner('');
+      } else if (mode === 'twopoint') {
+        updateModeBanner('两点画线模式：请在坐标系上点击第一个点 P₁');
+      } else if (mode === 'tangent') {
+        updateModeBanner('切线模式：移动鼠标预览切线，点击画布任意位置即可生成对应横坐标处的切线');
+      } else if (mode === 'brush') {
+        updateModeBanner('自由画笔模式：按住鼠标左键可在坐标系内任意手绘标注');
+      }
+      requestRender();
+    }
+
+    function bindAllUIEvents() {
+      // Sidebar toggle for mobile & desktop
+      const sidebar = document.getElementById('sidebarPanel');
+      document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        setTimeout(resizeCanvas, 50);
+      });
+
+      // Sidebar module filter tabs
+      document.querySelectorAll('.sidebar-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sidebar-tab-btn').forEach(b => {
+            b.className = 'sidebar-tab-btn flex-1 py-1.5 px-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-white/60 transition-all';
+          });
+          btn.className = 'sidebar-tab-btn flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold bg-white text-blue-600 shadow-sm border border-slate-200/80 transition-all';
+
+          const tab = btn.dataset.tab;
+          document.getElementById('module-func').classList.toggle('hidden', tab !== 'all' && tab !== 'func');
+          document.getElementById('module-props').classList.toggle('hidden', tab !== 'all' && tab !== 'props');
+          document.getElementById('module-geom').classList.toggle('hidden', tab !== 'all' && tab !== 'geom');
+        });
+      });
+
+      // Add New Function Card Button (Up to 5 functions)
+      document.getElementById('addNewFuncBtn').addEventListener('click', () => {
+        if (state.functions.length >= 5) return;
+        const idx = state.functions.length;
+        const pal = FUNC_PALETTE[idx % FUNC_PALETTE.length];
+        const sampleExprs = ['x^2 - 2*x - 3', 'x + 1', 'x^3 - 3*x', '2/x', '2*sin(x)'];
+        const newId = state.nextFuncId++;
+        state.functions.push({
+          id: newId,
+          name: getFuncSubName(idx),
+          rawExpr: sampleExprs[idx] || 'x^2',
+          visible: true,
+          color: pal.color,
+          palette: pal,
+          compiledFn: null,
+          parseValid: true,
+          analysis: createEmptyAnalysis()
+        });
+        state.activeFuncId = newId;
+        compileAllFunctions();
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        analyzeFunctionProperties(w);
+        renderMultiFunctionCards();
+        requestRender();
+      });
+
+      // Quick Math Keys (Insert into active focused function input)
+      document.querySelectorAll('.math-key-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const activeFn = getActiveFunc();
+          const funcInput = document.getElementById(`funcInput-${activeFn.id}`);
+          if (!funcInput) return;
+          const ins = btn.dataset.insert;
+          const start = funcInput.selectionStart ?? funcInput.value.length;
+          const end = funcInput.selectionEnd ?? funcInput.value.length;
+          const val = funcInput.value;
+          funcInput.value = val.slice(0, start) + ins + val.slice(end);
+          funcInput.focus();
+          const newPos = start + ins.length;
+          funcInput.setSelectionRange(newPos, newPos);
+          updateSingleFunctionExpression(activeFn.id, funcInput.value);
+        });
+      });
+
+      // Function Presets (Apply to active focused function)
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.preset-btn').forEach(b => {
+            b.className = 'preset-btn text-left px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all';
+            b.children[0].className = 'text-[11px] font-semibold text-slate-700';
+            b.children[1].className = 'font-mono text-[10px] text-slate-500 truncate';
+          });
+          btn.className = 'preset-btn text-left px-2.5 py-1.5 rounded-lg border border-blue-200 bg-blue-50/60 hover:bg-blue-100/70 transition-all';
+          btn.children[0].className = 'text-[11px] font-semibold text-blue-800';
+          btn.children[1].className = 'font-mono text-[10px] text-blue-600 truncate';
+
+          const activeFn = getActiveFunc();
+          activeFn.visible = true; // Ensure visible when user picks a preset
+          applyExpressionToActiveFunction(btn.dataset.preset);
+        });
+      });
+
+      // Dynamic Parameter Sliders (a, b, c)
+      const bindParamSlider = (key, sliderId, valId) => {
+        const slider = document.getElementById(sliderId);
+        const valSpan = document.getElementById(valId);
+        slider.addEventListener('input', () => {
+          state.params[key] = Number(slider.value);
+          valSpan.textContent = slider.value;
+          const activeFn = getActiveFunc();
+          const anyHasParam = state.functions.some(f => /[abc]/i.test(f.rawExpr));
+          if (!anyHasParam) {
+            activeFn.rawExpr = 'a*x^2 + b*x + c';
+          }
+          compileAllFunctions();
+          const w = canvas.width / (window.devicePixelRatio || 1);
+          analyzeFunctionProperties(w);
+          renderMultiFunctionCards();
+          requestRender();
+        });
+      };
+      bindParamSlider('a', 'paramASlider', 'paramAVal');
+      bindParamSlider('b', 'paramBSlider', 'paramBVal');
+      bindParamSlider('c', 'paramCSlider', 'paramCVal');
+
+      document.getElementById('useQuadraticParamBtn').addEventListener('click', () => {
+        applyExpressionToActiveFunction('a*x^2 + b*x + c');
+      });
+      document.getElementById('usePowerParamBtn').addEventListener('click', () => {
+        applyExpressionToActiveFunction('a*x^3 + b*x + c');
+      });
+
+      // Visual Toggles (Monotonicity, Special Points, Symmetry Axis)
+      const monoCheck = document.getElementById('showMonotonicToggle');
+      const headerMonoBtn = document.getElementById('headerMonotonicBtn');
+      const headerMonoState = document.getElementById('headerMonotonicState');
+
+      const syncMonoUI = (checked) => {
+        state.showMonotonic = checked;
+        monoCheck.checked = checked;
+        headerMonoState.textContent = checked ? '开启' : '关闭';
+        headerMonoBtn.className = checked
+          ? 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all'
+          : 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 transition-all';
+        requestRender();
+      };
+
+      monoCheck.addEventListener('change', (e) => syncMonoUI(e.target.checked));
+      headerMonoBtn.addEventListener('click', () => syncMonoUI(!state.showMonotonic));
+
+      document.getElementById('showSpecialPtsToggle').addEventListener('change', (e) => {
+        state.showSpecialPoints = e.target.checked;
+        requestRender();
+      });
+      document.getElementById('showSymmetryAxisToggle').addEventListener('change', (e) => {
+        state.showSymmetryAxis = e.target.checked;
+        requestRender();
+      });
+
+      // Module 3: Two-Point vs Tangent Sub-Tabs
+      const subTabTwoPtBtn = document.getElementById('subTabTwoPtBtn');
+      const subTabTangentBtn = document.getElementById('subTabTangentBtn');
+      const twoPointFormPanel = document.getElementById('twoPointFormPanel');
+      const tangentFormPanel = document.getElementById('tangentFormPanel');
+
+      subTabTwoPtBtn.addEventListener('click', () => {
+        subTabTwoPtBtn.className = 'py-1.5 px-2 rounded-lg text-xs font-semibold bg-white text-violet-700 shadow-sm transition-all';
+        subTabTangentBtn.className = 'py-1.5 px-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all';
+        twoPointFormPanel.classList.remove('hidden');
+        tangentFormPanel.classList.add('hidden');
+      });
+
+      subTabTangentBtn.addEventListener('click', () => {
+        subTabTangentBtn.className = 'py-1.5 px-2 rounded-lg text-xs font-semibold bg-white text-amber-600 shadow-sm transition-all';
+        subTabTwoPtBtn.className = 'py-1.5 px-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all';
+        tangentFormPanel.classList.remove('hidden');
+        twoPointFormPanel.classList.add('hidden');
+        updateTangentPreviewReadout();
+      });
+
+      // Two-Point Line Creation Controls
+      document.getElementById('snapPtsToFuncCheck').addEventListener('change', syncTwoPtSnapInputs);
+      document.getElementById('snapTargetFuncSelect').addEventListener('change', syncTwoPtSnapInputs);
+      document.getElementById('p1xInput').addEventListener('input', syncTwoPtSnapInputs);
+      document.getElementById('p2xInput').addEventListener('input', syncTwoPtSnapInputs);
+
+      document.getElementById('addTwoPtLineBtn').addEventListener('click', () => {
+        const kind = document.querySelector('input[name="lineKind"]:checked').value;
+        const snapToFunc = document.getElementById('snapPtsToFuncCheck').checked;
+        const targetFuncId = Number(document.getElementById('snapTargetFuncSelect').value || state.activeFuncId);
+        const targetFn = getFuncById(targetFuncId);
+        const x1 = Number(document.getElementById('p1xInput').value);
+        const x2 = Number(document.getElementById('p2xInput').value);
+        const y1 = snapToFunc ? evalFuncObj(targetFn, x1) : Number(document.getElementById('p1yInput').value);
+        const y2 = snapToFunc ? evalFuncObj(targetFn, x2) : Number(document.getElementById('p2yInput').value);
+
+        createCustomLine({
+          kind,
+          targetFuncId,
+          p1: { x: x1, y: y1 },
+          p2: { x: x2, y: y2 },
+          snapToFunc
+        });
+      });
+
+      // Tangent Generator Controls
+      const tangentX0Input = document.getElementById('tangentX0Input');
+      const tangentX0Slider = document.getElementById('tangentX0Slider');
+      const tangentTargetSelect = document.getElementById('tangentTargetFuncSelect');
+
+      tangentTargetSelect.addEventListener('change', updateTangentPreviewReadout);
+      tangentX0Input.addEventListener('input', () => {
+        tangentX0Slider.value = tangentX0Input.value;
+        updateTangentPreviewReadout();
+      });
+      tangentX0Slider.addEventListener('input', () => {
+        tangentX0Input.value = tangentX0Slider.value;
+        updateTangentPreviewReadout();
+        const firstTangent = state.lines.find(l => l.kind === 'tangent');
+        if (firstTangent) {
+          firstTangent.x0 = Number(tangentX0Slider.value);
+          firstTangent.targetFuncId = Number(tangentTargetSelect.value || state.activeFuncId);
+          computeLineIntersections(firstTangent);
+          renderLinesList();
+          requestRender();
+        }
+      });
+
+      document.getElementById('addTangentLineBtn').addEventListener('click', () => {
+        const x0 = Number(tangentX0Input.value);
+        const targetFuncId = Number(tangentTargetSelect.value || state.activeFuncId);
+        const targetFn = getFuncById(targetFuncId);
+        const y0 = evalFuncObj(targetFn, x0);
+        createCustomLine({
+          kind: 'tangent',
+          targetFuncId,
+          x0,
+          p1: { x: x0, y: isFinite(y0) ? y0 : 0 },
+          p2: { x: x0 + 1, y: isFinite(y0) ? y0 : 0 },
+          color: '#f59e0b'
+        });
+      });
+
+      // Clear Lines & Brush
+      document.getElementById('clearAllLinesBtn').addEventListener('click', () => {
+        state.lines = [];
+        renderLinesList();
+        requestRender();
+      });
+
+      const clearBrushFn = () => {
+        state.brushStrokes = [];
+        document.getElementById('clearBrushBtn').classList.add('hidden');
+        requestRender();
+      };
+      document.getElementById('clearBrushBtn').addEventListener('click', clearBrushFn);
+      document.getElementById('toolbarClearBrushBtn').addEventListener('click', clearBrushFn);
+
+      // Floating Canvas Mode Buttons
+      document.querySelectorAll('.canvas-mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => setCanvasInteractionMode(btn.dataset.mode));
+      });
+
+      // Zoom & View Reset Controls
+      document.getElementById('zoomInBtn').addEventListener('click', () => {
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        const h = canvas.height / (window.devicePixelRatio || 1);
+        zoomAtScreenPoint(w / 2, h / 2, 1.25);
+      });
+      document.getElementById('zoomOutBtn').addEventListener('click', () => {
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        const h = canvas.height / (window.devicePixelRatio || 1);
+        zoomAtScreenPoint(w / 2, h / 2, 0.8);
+      });
+
+      const resetViewFn = () => {
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        const h = canvas.height / (window.devicePixelRatio || 1);
+        state.view.scale = 65;
+        state.view.originX = w * 0.5;
+        state.view.originY = h * 0.55;
+        analyzeFunctionProperties(w);
+        requestRender();
+      };
+      document.getElementById('resetViewBtn').addEventListener('click', resetViewFn);
+
+      document.getElementById('resetAllBtn').addEventListener('click', () => {
+        state.params = { a: 1, b: -2, c: -3 };
+        document.getElementById('paramASlider').value = 1;
+        document.getElementById('paramBSlider').value = -2;
+        document.getElementById('paramCSlider').value = -3;
+        document.getElementById('paramAVal').textContent = '1';
+        document.getElementById('paramBVal').textContent = '-2';
+        document.getElementById('paramCVal').textContent = '-3';
+
+        state.functions = [
+          {
+            id: 1,
+            name: 'f₁',
+            rawExpr: 'x^2 - 2*x - 3',
+            visible: true,
+            color: FUNC_PALETTE[0].color,
+            palette: FUNC_PALETTE[0],
+            compiledFn: null,
+            parseValid: true,
+            analysis: createEmptyAnalysis()
+          },
+          {
+            id: 2,
+            name: 'f₂',
+            rawExpr: 'x + 1',
+            visible: true,
+            color: FUNC_PALETTE[1].color,
+            palette: FUNC_PALETTE[1],
+            compiledFn: null,
+            parseValid: true,
+            analysis: createEmptyAnalysis()
+          },
+          {
+            id: 3,
+            name: 'f₃',
+            rawExpr: 'x^3 - 3*x',
+            visible: false,
+            color: FUNC_PALETTE[2].color,
+            palette: FUNC_PALETTE[2],
+            compiledFn: null,
+            parseValid: true,
+            analysis: createEmptyAnalysis()
+          }
+        ];
+        state.activeFuncId = 1;
+        state.nextFuncId = 4;
+        state.lines = [];
+        state.brushStrokes = [];
+        setCanvasInteractionMode('pan');
+        compileAllFunctions();
+        renderMultiFunctionCards();
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        analyzeFunctionProperties(w);
+        createCustomLine({
+          kind: 'line',
+          targetFuncId: 1,
+          p1: { x: -2, y: 2 },
+          p2: { x: 3, y: -1 },
+          snapToFunc: false,
+          color: '#7c3aed'
+        });
+        resetViewFn();
+      });
+    }
+
+    // Initialize Workbench on Load
+    window.addEventListener('load', () => {
+      compileAllFunctions();
+      bindAllUIEvents();
+      setupCanvasEvents();
+      renderMultiFunctionCards();
+      resizeCanvas();
+
+      // Create an initial custom line intersecting the visible functions
+      createCustomLine({
+        kind: 'line',
+        targetFuncId: 1,
+        p1: { x: -2, y: 2 },
+        p2: { x: 3, y: -1 },
+        snapToFunc: false,
+        color: '#7c3aed'
+      });
+
+      window.addEventListener('resize', resizeCanvas);
+    });
+  </script>
+</body>
+</html>
