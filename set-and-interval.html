@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高中数学集合可视化实验室：Venn图与数轴区间交互器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .math-font {
+            font-family: 'Times New Roman', 'Noto Serif SC', Georgia, serif;
+        }
+        /* 自定义滑块样式 */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            transition: transform 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        .range-orange::-webkit-slider-thumb {
+            background: #ea580c !important;
+        }
+        .range-blue::-webkit-slider-thumb {
+            background: #2563eb !important;
+        }
+        /* SVG过渡动画 */
+        .venn-region {
+            transition: fill 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+        }
+        .elem-chip {
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .elem-chip:active {
+            transform: scale(0.92);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 顶部导航栏 -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-md shadow-indigo-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="9" cy="12" r="5" stroke-width="2"></circle>
+                        <circle cx="15" cy="12" r="5" stroke-width="2"></circle>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">高中数学集合可视化实验室</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">必修一 · 集合的图示法（Venn 图）与数轴连续区间运算交互器</p>
+                </div>
+            </div>
+
+            <!-- 模块切换按钮 -->
+            <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button id="tab-venn" onclick="switchTab('venn')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-white text-indigo-600 shadow-sm flex items-center space-x-1.5">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/>
+                    </svg>
+                    <span>模块一：Venn 图交互器</span>
+                </button>
+                <button id="tab-interval" onclick="switchTab('interval')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center space-x-1.5">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="2" y1="12" x2="22" y2="12"/><polyline points="18 8 22 12 18 16"/><circle cx="7" cy="12" r="2"/><circle cx="14" cy="12" r="2" fill="currentColor"/>
+                    </svg>
+                    <span>模块二：数轴与区间交互器</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ==================== 模块一：Venn 图（韦恩图）交互器 ==================== -->
+        <section id="module-venn" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- 左侧控制面板 (5列) -->
+            <div class="lg:col-span-5 space-y-5">
+                
+                <!-- 1. 集合形态与快速预设 -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-2 h-4 bg-indigo-600 rounded-full"></span>
+                            1. 集合关系形态（快速预设）
+                        </h2>
+                        <span class="text-xs text-slate-400">全集 U = {1, 2, ..., 10}</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button onclick="setVennPreset('general')" id="preset-general" class="px-3 py-2 rounded-xl text-xs font-semibold border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition">
+                            一般相交
+                        </button>
+                        <button onclick="setVennPreset('subsetAB')" id="preset-subsetAB" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition">
+                            子集 A ⊆ B
+                        </button>
+                        <button onclick="setVennPreset('disjoint')" id="preset-disjoint" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition">
+                            互斥 A∩B=∅
+                        </button>
+                        <button onclick="setVennPreset('equal')" id="preset-equal" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition">
+                            相等 A = B
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. 自定义集合元素点选 -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="w-2 h-4 bg-indigo-600 rounded-full"></span>
+                        2. 点选自定义集合元素
+                    </h2>
+
+                    <!-- 集合 A 元素 -->
+                    <div class="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-bold text-blue-800 flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span>
+                                集合 A 元素
+                            </span>
+                            <span id="venn-setA-str" class="text-xs font-mono font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">A = {1, 2, 3, 4, 5}</span>
+                        </div>
+                        <div id="venn-A-buttons" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                            <!-- JS 动态生成 1-10 按钮 -->
+                        </div>
+                    </div>
+
+                    <!-- 集合 B 元素 -->
+                    <div class="p-3.5 rounded-xl bg-orange-50/60 border border-orange-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-bold text-orange-800 flex items-center gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span>
+                                集合 B 元素
+                            </span>
+                            <span id="venn-setB-str" class="text-xs font-mono font-semibold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md">B = {4, 5, 6, 7, 8}</span>
+                        </div>
+                        <div id="venn-B-buttons" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                            <!-- JS 动态生成 1-10 按钮 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 集合运算与德·摩根定律选择器 -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="w-2 h-4 bg-indigo-600 rounded-full"></span>
+                        3. 选择集合运算 / 定律验证
+                    </h2>
+
+                    <div>
+                        <p class="text-xs text-slate-500 mb-2 font-medium">基础集合与核心运算：</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setVennOp('A')" data-op="A" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">A</span>
+                                <span class="text-[11px] opacity-75">集合 A</span>
+                            </button>
+                            <button onclick="setVennOp('B')" data-op="B" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">B</span>
+                                <span class="text-[11px] opacity-75">集合 B</span>
+                            </button>
+                            <button onclick="setVennOp('inter')" data-op="inter" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">A ∩ B</span>
+                                <span class="text-[11px] opacity-75">交集</span>
+                            </button>
+                            <button onclick="setVennOp('union')" data-op="union" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">A ∪ B</span>
+                                <span class="text-[11px] opacity-75">并集</span>
+                            </button>
+                            <button onclick="setVennOp('compA')" data-op="compA" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">∁<sub>U</sub>A</span>
+                                <span class="text-[11px] opacity-75">A 的补集</span>
+                            </button>
+                            <button onclick="setVennOp('compB')" data-op="compB" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">∁<sub>U</sub>B</span>
+                                <span class="text-[11px] opacity-75">B 的补集</span>
+                            </button>
+                            <button onclick="setVennOp('diffAB')" data-op="diffAB" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">A - B</span>
+                                <span class="text-[11px] opacity-75">A 差 B (A∩∁<sub>U</sub>B)</span>
+                            </button>
+                            <button onclick="setVennOp('diffBA')" data-op="diffBA" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">B - A</span>
+                                <span class="text-[11px] opacity-75">B 差 A (B∩∁<sub>U</sub>A)</span>
+                            </button>
+                            <button onclick="setVennOp('symDiff')" data-op="symDiff" class="venn-op-btn px-3 py-2.5 rounded-xl text-sm font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-base font-bold">A Δ B</span>
+                                <span class="text-[11px] opacity-75">对称差</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100">
+                        <p class="text-xs text-indigo-600 mb-2 font-semibold flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            德·摩根定律（反演律）直观验证：
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button onclick="setVennOp('demorgan1')" data-op="demorgan1" class="venn-op-btn px-3 py-2.5 rounded-xl text-xs font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-sm font-bold">∁<sub>U</sub>(A ∩ B) = (∁<sub>U</sub>A) ∪ (∁<sub>U</sub>B)</span>
+                                <span class="text-[11px] opacity-75 mt-0.5">“交集的补 = 补集的并”</span>
+                            </button>
+                            <button onclick="setVennOp('demorgan2')" data-op="demorgan2" class="venn-op-btn px-3 py-2.5 rounded-xl text-xs font-semibold border transition flex flex-col items-center">
+                                <span class="math-font text-sm font-bold">∁<sub>U</sub>(A ∪ B) = (∁<sub>U</sub>A) ∩ (∁<sub>U</sub>B)</span>
+                                <span class="text-[11px] opacity-75 mt-0.5">“并集的补 = 补集的交”</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧 Venn 图画布与解析面板 (7列) -->
+            <div class="lg:col-span-7 flex flex-col space-y-5">
+                
+                <!-- Venn SVG 可视化卡片 -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex-1 flex flex-col">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-sm math-font" id="venn-active-op-badge">A ∩ B</span>
+                            <h3 class="font-bold text-slate-800 text-base" id="venn-active-op-title">交集：同时属于 A 且属于 B</h3>
+                        </div>
+                        <div class="flex items-center space-x-4 text-xs text-slate-500">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-3.5 h-3.5 rounded bg-indigo-500/30 border border-indigo-600 inline-block"></span>
+                                当前运算高亮区
+                            </span>
+                            <span id="venn-relation-badge" class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">当前形态：一般相交</span>
+                        </div>
+                    </div>
+
+                    <!-- 动态 SVG 容器 -->
+                    <div class="relative w-full bg-slate-50 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center my-auto" style="min-height: 360px;">
+                        <svg id="venn-svg" viewBox="0 0 600 360" class="w-full h-auto max-h-[400px] select-none">
+                            <defs>
+                                <!-- 斜线阴影纹理 Pattern -->
+                                <pattern id="hatch-pattern" width="12" height="12" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                                    <rect width="12" height="12" fill="rgba(79, 70, 229, 0.22)" />
+                                    <line x1="0" y1="0" x2="0" y2="12" stroke="#4f46e5" stroke-width="3.5" stroke-opacity="0.55" />
+                                </pattern>
+                                
+                                <!-- 动态圆裁剪路径（坐标由 JS 动态更新以支持子集/互斥形态） -->
+                                <clipPath id="clip-circle-A">
+                                    <circle id="def-circle-A" cx="235" cy="185" r="105" />
+                                </clipPath>
+                                <clipPath id="clip-circle-B">
+                                    <circle id="def-circle-B" cx="365" cy="185" r="105" />
+                                </clipPath>
+
+                                <!-- 遮罩：用于挖空某个圆或求差集 -->
+                                <!-- 1. 全集 U 外部区域遮罩 (U 减去 A∪B) -->
+                                <mask id="mask-outside">
+                                    <rect x="20" y="20" width="560" height="320" rx="16" fill="white" />
+                                    <circle id="mask-out-A" cx="235" cy="185" r="105" fill="black" />
+                                    <circle id="mask-out-B" cx="365" cy="185" r="105" fill="black" />
+                                </mask>
+                                <!-- 2. 仅属于 A 的遮罩 (A 减去 B) -->
+                                <mask id="mask-only-A">
+                                    <rect x="0" y="0" width="600" height="360" fill="black" />
+                                    <circle id="mask-onlyA-A" cx="235" cy="185" r="105" fill="white" />
+                                    <circle id="mask-onlyA-B" cx="365" cy="185" r="105" fill="black" />
+                                </mask>
+                                <!-- 3. 仅属于 B 的遮罩 (B 减去 A) -->
+                                <mask id="mask-only-B">
+                                    <rect x="0" y="0" width="600" height="360" fill="black" />
+                                    <circle id="mask-onlyB-B" cx="365" cy="185" r="105" fill="white" />
+                                    <circle id="mask-onlyB-A" cx="235" cy="185" r="105" fill="black" />
+                                </mask>
+                            </defs>
+
+                            <!-- 全集 U 背景框 -->
+                            <rect x="20" y="20" width="560" height="320" rx="16" fill="#ffffff" stroke="#64748b" stroke-width="2" />
+
+                            <!-- 四个独立可高亮的拓扑分区 -->
+                            <!-- 分区 1: 外部区域 ∁_U(A∪B) -->
+                            <rect id="region-outside" x="20" y="20" width="560" height="320" rx="16" mask="url(#mask-outside)" fill="transparent" class="venn-region" />
+                            
+                            <!-- 分区 2: 仅 A 区域 (A - B) -->
+                            <rect id="region-onlyA" x="20" y="20" width="560" height="320" mask="url(#mask-only-A)" fill="transparent" class="venn-region" />
+
+                            <!-- 分区 3: 仅 B 区域 (B - A) -->
+                            <rect id="region-onlyB" x="20" y="20" width="560" height="320" mask="url(#mask-only-B)" fill="transparent" class="venn-region" />
+
+                            <!-- 分区 4: 交集区域 (A ∩ B) -->
+                            <g clip-path="url(#clip-circle-A)">
+                                <circle id="region-both" cx="365" cy="185" r="105" fill="transparent" class="venn-region" />
+                            </g>
+
+                            <!-- 集合 A 与 B 的轮廓线 -->
+                            <circle id="stroke-circle-A" cx="235" cy="185" r="105" fill="none" stroke="#2563eb" stroke-width="3" />
+                            <circle id="stroke-circle-B" cx="365" cy="185" r="105" fill="none" stroke="#ea580c" stroke-width="3" />
+
+                            <!-- 全集 U 标签 -->
+                            <g transform="translate(36, 48)">
+                                <rect x="-6" y="-18" width="36" height="26" rx="6" fill="#f1f5f9" stroke="#cbd5e1" />
+                                <text x="12" y="0" text-anchor="middle" class="math-font font-bold text-lg fill-slate-700">U</text>
+                            </g>
+
+                            <!-- 集合 A 与 B 的标题标签 -->
+                            <text id="label-circle-A" x="155" y="95" text-anchor="middle" class="font-bold text-base fill-blue-700">集合 A</text>
+                            <text id="label-circle-B" x="445" y="95" text-anchor="middle" class="font-bold text-base fill-orange-600">集合 B</text>
+
+                            <!-- 动态元素渲染层 -->
+                            <g id="venn-elements-layer"></g>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 数学表达与解析卡片 -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="w-2 h-4 bg-emerald-500 rounded-full"></span>
+                        实时数学语言输出与集合元素统计
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- 列举法结果 -->
+                        <div class="p-4 rounded-xl bg-indigo-50/70 border border-indigo-100 flex flex-col justify-between">
+                            <span class="text-xs font-semibold text-indigo-600 uppercase">当前运算结果（列举法）</span>
+                            <div class="my-1.5 text-lg font-bold text-indigo-950 math-font break-all" id="venn-result-roster">
+                                A ∩ B = {4, 5}
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-indigo-700 pt-1 border-t border-indigo-100">
+                                <span id="venn-result-count">元素个数 card = 2</span>
+                                <span id="venn-subset-count">子集个数 2² = 4 个</span>
+                            </div>
+                        </div>
+
+                        <!-- 描述法与定义 -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                            <span class="text-xs font-semibold text-slate-500 uppercase">数学符号定义（描述法）</span>
+                            <div class="my-1.5 text-base font-bold text-slate-800 math-font" id="venn-result-builder">
+                                { x ∈ U | x ∈ A 且 x ∈ B }
+                            </div>
+                            <div class="text-xs text-slate-600 pt-1 border-t border-slate-200" id="venn-result-note">
+                                提示：交集取两个集合的公共元素，若无公共元素则为空集 ∅。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 四个分区明细一览 -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+                            <div class="font-semibold text-blue-700 mb-1">仅属于 A (A-B)</div>
+                            <div id="stat-onlyA" class="font-mono text-slate-700">{1, 2, 3}</div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+                            <div class="font-semibold text-purple-700 mb-1">公共交集 (A∩B)</div>
+                            <div id="stat-both" class="font-mono text-slate-700">{4, 5}</div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+                            <div class="font-semibold text-orange-700 mb-1">仅属于 B (B-A)</div>
+                            <div id="stat-onlyB" class="font-mono text-slate-700">{6, 7, 8}</div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+                            <div class="font-semibold text-slate-600 mb-1">外部区域 ∁<sub>U</sub>(A∪B)</div>
+                            <div id="stat-outside" class="font-mono text-slate-700">{9, 10}</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== 模块二：数轴与区间表示交互器 ==================== -->
+        <section id="module-interval" class="hidden grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- 左侧区间参数控制面板 (5列) -->
+            <div class="lg:col-span-5 space-y-5">
+
+                <!-- 典型高考场景预设 -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-2 h-4 bg-indigo-600 rounded-full"></span>
+                            典型数轴区间场景（一键加载）
+                        </h2>
+                        <span class="text-xs text-slate-400">全集 R = (-∞, +∞)</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setIntervalPreset('overlap')" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition text-left">
+                            ① 常规部分重叠区间
+                        </button>
+                        <button onclick="setIntervalPreset('touchOpenClosed')" class="px-3 py-2 rounded-xl text-xs font-semibold border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition text-left">
+                            ② 端点重合（一开一闭 ★易错）
+                        </button>
+                        <button onclick="setIntervalPreset('touchBothClosed')" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition text-left">
+                            ③ 端点重合（两闭相交于单点）
+                        </button>
+                        <button onclick="setIntervalPreset('infiniteRay')" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition text-left">
+                            ④ 含无穷区间 (-∞, a] 与 [b, +∞)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 集合 A 区间控制器 (蓝色) -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border-2 border-blue-200 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full bg-blue-600"></span>
+                            <h3 class="font-bold text-blue-900 text-base">集合 A 区间设置</h3>
+                        </div>
+                        <span id="int-A-badge" class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 font-mono text-xs font-bold">
+                            A = [-4, 2)
+                        </span>
+                    </div>
+
+                    <!-- 左端点 a1 -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700">左端点 a₁：<span id="label-a1-val" class="text-blue-600 font-mono text-sm">-4</span></span>
+                            <div class="flex items-center gap-1.5">
+                                <button id="btn-a1-inf" onclick="toggleInf('A', 'left')" class="px-2 py-1 rounded text-xs font-semibold border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 transition">
+                                    设为 -∞
+                                </button>
+                                <button id="btn-a1-closed" onclick="toggleClosed('A', 'left')" class="px-2.5 py-1 rounded text-xs font-bold border border-blue-300 bg-blue-600 text-white transition">
+                                    [ 闭区间 (含端点)
+                                </button>
+                            </div>
+                        </div>
+                        <input id="slider-a1" type="range" min="-9" max="9" step="0.5" value="-4" oninput="updateIntervalFromUI('A', 'left')" class="w-full range-blue">
+                    </div>
+
+                    <!-- 右端点 a2 -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700">右端点 a₂：<span id="label-a2-val" class="text-blue-600 font-mono text-sm">2</span></span>
+                            <div class="flex items-center gap-1.5">
+                                <button id="btn-a2-inf" onclick="toggleInf('A', 'right')" class="px-2 py-1 rounded text-xs font-semibold border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 transition">
+                                    设为 +∞
+                                </button>
+                                <button id="btn-a2-closed" onclick="toggleClosed('A', 'right')" class="px-2.5 py-1 rounded text-xs font-bold border border-slate-300 bg-white text-slate-700 transition">
+                                    ) 开区间 (不含)
+                                </button>
+                            </div>
+                        </div>
+                        <input id="slider-a2" type="range" min="-9" max="9" step="0.5" value="2" oninput="updateIntervalFromUI('A', 'right')" class="w-full range-blue">
+                    </div>
+                </div>
+
+                <!-- 集合 B 区间控制器 (橙色) -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border-2 border-orange-200 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full bg-orange-500"></span>
+                            <h3 class="font-bold text-orange-900 text-base">集合 B 区间设置</h3>
+                        </div>
+                        <span id="int-B-badge" class="px-2.5 py-1 rounded-lg bg-orange-100 text-orange-800 font-mono text-xs font-bold">
+                            B = (-1, 5]
+                        </span>
+                    </div>
+
+                    <!-- 左端点 b1 -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700">左端点 b₁：<span id="label-b1-val" class="text-orange-600 font-mono text-sm">-1</span></span>
+                            <div class="flex items-center gap-1.5">
+                                <button id="btn-b1-inf" onclick="toggleInf('B', 'left')" class="px-2 py-1 rounded text-xs font-semibold border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 transition">
+                                    设为 -∞
+                                </button>
+                                <button id="btn-b1-closed" onclick="toggleClosed('B', 'left')" class="px-2.5 py-1 rounded text-xs font-bold border border-slate-300 bg-white text-slate-700 transition">
+                                    ( 开区间 (不含)
+                                </button>
+                            </div>
+                        </div>
+                        <input id="slider-b1" type="range" min="-9" max="9" step="0.5" value="-1" oninput="updateIntervalFromUI('B', 'left')" class="w-full range-orange">
+                    </div>
+
+                    <!-- 右端点 b2 -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700">右端点 b₂：<span id="label-b2-val" class="text-orange-600 font-mono text-sm">5</span></span>
+                            <div class="flex items-center gap-1.5">
+                                <button id="btn-b2-inf" onclick="toggleInf('B', 'right')" class="px-2 py-1 rounded text-xs font-semibold border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 transition">
+                                    设为 +∞
+                                </button>
+                                <button id="btn-b2-closed" onclick="toggleClosed('B', 'right')" class="px-2.5 py-1 rounded text-xs font-bold border border-orange-300 bg-orange-500 text-white transition">
+                                    ] 闭区间 (含端点)
+                                </button>
+                            </div>
+                        </div>
+                        <input id="slider-b2" type="range" min="-9" max="9" step="0.5" value="5" oninput="updateIntervalFromUI('B', 'right')" class="w-full range-orange">
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 右侧数轴画布与区间解析面板 (7列) -->
+            <div class="lg:col-span-7 flex flex-col space-y-5">
+
+                <!-- 集合运算选择与数轴 SVG 可视化卡片 -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col">
+                    
+                    <!-- 顶部运算切换按钮组 -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-slate-700">选择数轴高亮运算：</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="setIntervalOp('inter')" data-intop="inter" class="int-op-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border transition">
+                                交集 A ∩ B
+                            </button>
+                            <button onclick="setIntervalOp('union')" data-intop="union" class="int-op-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border transition">
+                                并集 A ∪ B
+                            </button>
+                            <button onclick="setIntervalOp('compA')" data-intop="compA" class="int-op-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border transition">
+                                补集 ∁<sub>R</sub>A
+                            </button>
+                            <button onclick="setIntervalOp('compB')" data-intop="compB" class="int-op-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border transition">
+                                补集 ∁<sub>R</sub>B
+                            </button>
+                            <button onclick="setIntervalOp('diffAB')" data-intop="diffAB" class="int-op-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border transition">
+                                差集 A ∩ (∁<sub>R</sub>B)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 图例说明 -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2 text-xs text-slate-600 px-1">
+                        <div class="flex flex-wrap items-center gap-4">
+                            <span class="flex items-center gap-1.5 font-medium text-blue-700">
+                                <span class="w-3 h-1 bg-blue-600 inline-block rounded"></span> 集合 A 支架 (高层)
+                            </span>
+                            <span class="flex items-center gap-1.5 font-medium text-orange-600">
+                                <span class="w-3 h-1 bg-orange-500 inline-block rounded"></span> 集合 B 支架 (低层)
+                            </span>
+                            <span class="flex items-center gap-1.5 font-medium text-indigo-700">
+                                <span class="w-3.5 h-3.5 bg-indigo-500/25 border border-indigo-600 inline-block rounded-sm"></span> 运算结果阴影区
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded-full bg-slate-800 inline-block"></span> 实心点：闭区间 (含端点)
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded-full border-2 border-slate-800 bg-white inline-block"></span> 空心点：开区间 (不含)
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 动态实数轴 SVG -->
+                    <div class="relative w-full bg-slate-50 rounded-xl border border-slate-200 overflow-hidden my-1">
+                        <svg id="numberline-svg" viewBox="0 0 700 260" class="w-full h-auto select-none">
+                            <defs>
+                                <pattern id="nl-hatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                                    <rect width="10" height="10" fill="rgba(79, 70, 229, 0.18)" />
+                                    <line x1="0" y1="0" x2="0" y2="10" stroke="#4f46e5" stroke-width="2.5" stroke-opacity="0.5" />
+                                </pattern>
+                            </defs>
+                            <!-- 由 JS 动态绘制：高亮阴影、数轴刻度、集合A门字支架、集合B门字支架、空实心圆点 -->
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 端点重合易错点智能检测横幅 -->
+                <div id="coincidence-alert" class="rounded-2xl p-4 border-2 border-amber-300 bg-amber-50/90 shadow-sm transition-all">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 font-bold text-sm mt-0.5">
+                            !
+                        </div>
+                        <div class="space-y-1 flex-1">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-sm font-bold text-amber-900" id="coincidence-title">端点重合易错点检测雷达</h4>
+                                <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-200 text-amber-900">高考高频考点</span>
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed" id="coincidence-desc">
+                                当前集合 A 与 B 的端点未重合。您可以尝试将集合 A 和 B 的某个端点拖动到同一个数值（例如都设为 2），观察“一开一闭”或“两闭”对交集、并集结果的影响！
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 区间表示法与描述法实时对照输出卡片 -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="w-2 h-4 bg-emerald-500 rounded-full"></span>
+                        区间表示法 vs 描述法（不等式）实时对照
+                    </h3>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-xs text-slate-500 uppercase">
+                                    <th class="py-2.5 px-3 font-semibold">集合名称</th>
+                                    <th class="py-2.5 px-3 font-semibold">区间表示法</th>
+                                    <th class="py-2.5 px-3 font-semibold">描述法（不等式语言）</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm">
+                                <tr class="bg-blue-50/30">
+                                    <td class="py-3 px-3 font-bold text-blue-700">集合 A</td>
+                                    <td class="py-3 px-3 font-mono font-semibold text-blue-900" id="table-A-interval">[-4, 2)</td>
+                                    <td class="py-3 px-3 math-font text-slate-700" id="table-A-builder">{ x | -4 ≤ x &lt; 2 }</td>
+                                </tr>
+                                <tr class="bg-orange-50/30">
+                                    <td class="py-3 px-3 font-bold text-orange-600">集合 B</td>
+                                    <td class="py-3 px-3 font-mono font-semibold text-orange-900" id="table-B-interval">(-1, 5]</td>
+                                    <td class="py-3 px-3 math-font text-slate-700" id="table-B-builder">{ x | -1 &lt; x ≤ 5 }</td>
+                                </tr>
+                                <tr class="bg-indigo-50/70 font-medium">
+                                    <td class="py-3.5 px-3 font-bold text-indigo-700" id="table-res-name">当前运算 (A ∩ B)</td>
+                                    <td class="py-3.5 px-3 font-mono font-bold text-indigo-950 text-base" id="table-res-interval">(-1, 2)</td>
+                                    <td class="py-3.5 px-3 math-font font-bold text-indigo-950 text-base" id="table-res-builder">{ x | -1 &lt; x &lt; 2 }</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 底部知识点速查栏 -->
+    <footer class="bg-white border-t border-slate-200 mt-8 py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
+            <div class="flex flex-wrap items-center gap-4">
+                <span><strong>核心口诀：</strong>交集取公共（且），并集取全部（或），补集取剩余（且不属于）。</span>
+                <span><strong>端点原则：</strong>实心点 <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">[ ]</code> 对应 <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">≤ , ≥</code>；空心点 <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">( )</code> 对应 <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">&lt; , &gt;</code>；无穷大 <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">±∞</code> 侧永远用开区间小括号。</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== 交互逻辑脚本 ==================== -->
+    <script>
+        /* =========================================================================
+           全局 Tab 切换
+           ========================================================================= */
+        function switchTab(tab) {
+            const vennSec = document.getElementById('module-venn');
+            const intSec = document.getElementById('module-interval');
+            const tabVenn = document.getElementById('tab-venn');
+            const tabInt = document.getElementById('tab-interval');
+
+            if (tab === 'venn') {
+                vennSec.classList.remove('hidden');
+                vennSec.classList.add('grid');
+                intSec.classList.add('hidden');
+                intSec.classList.remove('grid');
+
+                tabVenn.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-white text-indigo-600 shadow-sm flex items-center space-x-1.5';
+                tabInt.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center space-x-1.5';
+                renderVenn();
+            } else {
+                intSec.classList.remove('hidden');
+                intSec.classList.add('grid');
+                vennSec.classList.add('hidden');
+                vennSec.classList.remove('grid');
+
+                tabInt.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-white text-indigo-600 shadow-sm flex items-center space-x-1.5';
+                tabVenn.className = 'px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 flex items-center space-x-1.5';
+                renderIntervalModule();
+            }
+        }
+
+        /* =========================================================================
+           模块一：Venn 图交互器状态与逻辑
+           ========================================================================= */
+        const vennState = {
+            U: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            A: new Set([1, 2, 3, 4, 5]),
+            B: new Set([4, 5, 6, 7, 8]),
+            op: 'inter' // A, B, inter, union, compA, compB, diffAB, diffBA, symDiff, demorgan1, demorgan2
+        };
+
+        const vennOpMeta = {
+            A: {
+                symbol: 'A',
+                title: '集合 A',
+                builder: '{ x ∈ U | x ∈ A }',
+                note: '所有属于集合 A 的元素构成的集合（包含仅属于 A 和 A∩B 两部分）。',
+                regions: { onlyA: true, both: true, onlyB: false, outside: false }
+            },
+            B: {
+                symbol: 'B',
+                title: '集合 B',
+                builder: '{ x ∈ U | x ∈ B }',
+                note: '所有属于集合 B 的元素构成的集合（包含仅属于 B 和 A∩B 两部分）。',
+                regions: { onlyA: false, both: true, onlyB: true, outside: false }
+            },
+            inter: {
+                symbol: 'A ∩ B',
+                title: '交集：同时属于 A 且属于 B',
+                builder: '{ x ∈ U | x ∈ A 且 x ∈ B }',
+                note: '交集取两集合重叠公共部分。若 A ⊆ B，则 A ∩ B = A；若互不相交，则 A ∩ B = ∅。',
+                regions: { onlyA: false, both: true, onlyB: false, outside: false }
+            },
+            union: {
+                symbol: 'A ∪ B',
+                title: '并集：属于 A 或属于 B',
+                builder: '{ x ∈ U | x ∈ A 或 x ∈ B }',
+                note: '并集把两个集合的元素合并在一起（注意集合元素的互异性，公共元素只写一次）。',
+                regions: { onlyA: true, both: true, onlyB: true, outside: false }
+            },
+            compA: {
+                symbol: '∁_U A',
+                title: 'A 的补集：全集 U 中不属于 A 的元素',
+                builder: '{ x ∈ U | x ∉ A }',
+                note: '补集是相对于全集 U 而言的，满足 A ∪ (∁_U A) = U 且 A ∩ (∁_U A) = ∅。',
+                regions: { onlyA: false, both: false, onlyB: true, outside: true }
+            },
+            compB: {
+                symbol: '∁_U B',
+                title: 'B 的补集：全集 U 中不属于 B 的元素',
+                builder: '{ x ∈ U | x ∉ B }',
+                note: '全集 U 中除去集合 B 以外的所有剩余区域（含仅属于 A 的部分及外部区域）。',
+                regions: { onlyA: true, both: false, onlyB: false, outside: true }
+            },
+            diffAB: {
+                symbol: 'A - B (或 A ∩ ∁_U B)',
+                title: '差集：属于 A 但不属于 B',
+                builder: '{ x ∈ U | x ∈ A 且 x ∉ B }',
+                note: '从集合 A 中挖去属于 B 的公共元素后剩下的纯 A 部分。',
+                regions: { onlyA: true, both: false, onlyB: false, outside: false }
+            },
+            diffBA: {
+                symbol: 'B - A (或 B ∩ ∁_U A)',
+                title: '差集：属于 B 但不属于 A',
+                builder: '{ x ∈ U | x ∈ B 且 x ∉ A }',
+                note: '从集合 B 中挖去属于 A 的公共元素后剩下的纯 B 部分。',
+                regions: { onlyA: false, both: false, onlyB: true, outside: false }
+            },
+            symDiff: {
+                symbol: 'A Δ B',
+                title: '对称差：(A - B) ∪ (B - A)',
+                builder: '{ x ∈ U | x ∈ (A ∪ B) 且 x ∉ (A ∩ B) }',
+                note: '属于 A 与 B 的并集，但剔除掉两者的交集部分。',
+                regions: { onlyA: true, both: false, onlyB: true, outside: false }
+            },
+            demorgan1: {
+                symbol: '∁_U(A ∩ B) = (∁_U A) ∪ (∁_U B)',
+                title: '德·摩根定律一：交集的补 = 补集的并',
+                builder: '{ x ∈ U | x ∉ (A ∩ B) } = { x ∈ U | x ∉ A 或 x ∉ B }',
+                note: '除中间交集 A∩B 以外的所有区域！验证了“交集取补”等价于“各自取补再求并”。',
+                regions: { onlyA: true, both: false, onlyB: true, outside: true }
+            },
+            demorgan2: {
+                symbol: '∁_U(A ∪ B) = (∁_U A) ∩ (∁_U B)',
+                title: '德·摩根定律二：并集的补 = 补集的交',
+                builder: '{ x ∈ U | x ∉ (A ∪ B) } = { x ∈ U | x ∉ A 且 x ∉ B }',
+                note: 'A∪B 外部的空白区域！验证了“并集取补”等价于“既不属于 A 也不属于 B”。',
+                regions: { onlyA: false, both: false, onlyB: false, outside: true }
+            }
+        };
+
+        // 初始化 Venn 元素点选按钮
+        function initVennButtons() {
+            const containerA = document.getElementById('venn-A-buttons');
+            const containerB = document.getElementById('venn-B-buttons');
+            containerA.innerHTML = '';
+            containerB.innerHTML = '';
+
+            vennState.U.forEach(num => {
+                // A 按钮
+                const btnA = document.createElement('button');
+                btnA.id = `btn-venn-A-${num}`;
+                btnA.textContent = num;
+                btnA.onclick = () => toggleVennElement('A', num);
+                containerA.appendChild(btnA);
+
+                // B 按钮
+                const btnB = document.createElement('button');
+                btnB.id = `btn-venn-B-${num}`;
+                btnB.textContent = num;
+                btnB.onclick = () => toggleVennElement('B', num);
+                containerB.appendChild(btnB);
+            });
+        }
+
+        function toggleVennElement(setKey, num) {
+            const targetSet = vennState[setKey];
+            if (targetSet.has(num)) {
+                targetSet.delete(num);
+            } else {
+                targetSet.add(num);
+            }
+            renderVenn();
+        }
+
+        function setVennPreset(type) {
+            if (type === 'general') {
+                vennState.A = new Set([1, 2, 3, 4, 5]);
+                vennState.B = new Set([4, 5, 6, 7, 8]);
+            } else if (type === 'subsetAB') {
+                vennState.A = new Set([2, 4, 6]);
+                vennState.B = new Set([1, 2, 3, 4, 5, 6, 7]);
+            } else if (type === 'disjoint') {
+                vennState.A = new Set([1, 2, 3]);
+                vennState.B = new Set([6, 7, 8]);
+            } else if (type === 'equal') {
+                vennState.A = new Set([2, 3, 5, 7]);
+                vennState.B = new Set([2, 3, 5, 7]);
+            }
+            renderVenn();
+        }
+
+        function setVennOp(op) {
+            vennState.op = op;
+            renderVenn();
+        }
+
+        function formatSetRoster(arr) {
+            if (!arr || arr.length === 0) return '∅';
+            return '{' + arr.join(', ') + '}';
+        }
+
+        // 核心渲染 Venn 图
+        function renderVenn() {
+            const A = Array.from(vennState.A).sort((a, b) => a - b);
+            const B = Array.from(vennState.B).sort((a, b) => a - b);
+
+            // 1. 更新元素按钮样式
+            vennState.U.forEach(num => {
+                const btnA = document.getElementById(`btn-venn-A-${num}`);
+                const btnB = document.getElementById(`btn-venn-B-${num}`);
+                if (vennState.A.has(num)) {
+                    btnA.className = 'elem-chip py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-sm border border-blue-700';
+                } else {
+                    btnA.className = 'elem-chip py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-blue-50';
+                }
+                if (vennState.B.has(num)) {
+                    btnB.className = 'elem-chip py-1.5 rounded-lg text-xs font-bold bg-orange-500 text-white shadow-sm border border-orange-600';
+                } else {
+                    btnB.className = 'elem-chip py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-orange-50';
+                }
+            });
+
+            document.getElementById('venn-setA-str').textContent = `A = ${formatSetRoster(A)}`;
+            document.getElementById('venn-setB-str').textContent = `B = ${formatSetRoster(B)}`;
+
+            // 2. 更新运算按钮高亮
+            document.querySelectorAll('.venn-op-btn').forEach(btn => {
+                const isSelected = btn.getAttribute('data-op') === vennState.op;
+                if (isSelected) {
+                    btn.className = 'venn-op-btn px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition flex flex-col items-center';
+                } else {
+                    btn.className = 'venn-op-btn px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition flex flex-col items-center';
+                }
+            });
+
+            // 3. 计算四个拓扑分区的元素
+            const onlyA = vennState.U.filter(x => vennState.A.has(x) && !vennState.B.has(x));
+            const both = vennState.U.filter(x => vennState.A.has(x) && vennState.B.has(x));
+            const onlyB = vennState.U.filter(x => !vennState.A.has(x) && vennState.B.has(x));
+            const outside = vennState.U.filter(x => !vennState.A.has(x) && !vennState.B.has(x));
+
+            document.getElementById('stat-onlyA').textContent = formatSetRoster(onlyA);
+            document.getElementById('stat-both').textContent = formatSetRoster(both);
+            document.getElementById('stat-onlyB').textContent = formatSetRoster(onlyB);
+            document.getElementById('stat-outside').textContent = formatSetRoster(outside);
+
+            // 4. 判断当前集合关系形态，动态调整圆的位置与大小
+            let relText = '一般相交';
+            let geom = {
+                ax: 235, ay: 185, ar: 105,
+                bx: 365, by: 185, br: 105,
+                labelAx: 155, labelAy: 85,
+                labelBx: 445, labelBy: 85
+            };
+
+            const isASubsetB = onlyA.length === 0 && both.length > 0 && onlyB.length > 0;
+            const isBSubsetA = onlyB.length === 0 && both.length > 0 && onlyA.length > 0;
+            const isEqual = onlyA.length === 0 && onlyB.length === 0 && both.length > 0;
+            const isDisjoint = both.length === 0 && (onlyA.length > 0 || onlyB.length > 0);
+
+            if (isEqual) {
+                relText = '集合相等 (A = B)';
+                geom = {
+                    ax: 300, ay: 185, ar: 105,
+                    bx: 300, by: 185, br: 105,
+                    labelAx: 230, labelAy: 65,
+                    labelBx: 370, labelBy: 65
+                };
+            } else if (isASubsetB) {
+                relText = '真子集关系 (A ⫋ B)';
+                geom = {
+                    ax: 270, ay: 195, ar: 62,
+                    bx: 310, by: 185, br: 118,
+                    labelAx: 270, labelAy: 122,
+                    labelBx: 410, labelBy: 75
+                };
+            } else if (isBSubsetA) {
+                relText = '真子集关系 (B ⫋ A)';
+                geom = {
+                    ax: 290, ay: 185, ar: 118,
+                    bx: 330, by: 195, br: 62,
+                    labelAx: 190, labelAy: 75,
+                    labelBx: 330, labelBy: 122
+                };
+            } else if (isDisjoint) {
+                relText = '互不相交 (A ∩ B = ∅)';
+                geom = {
+                    ax: 190, ay: 185, ar: 92,
+                    bx: 410, by: 185, br: 92,
+                    labelAx: 190, labelAy: 78,
+                    labelBx: 410, labelBy: 78
+                };
+            }
+
+            document.getElementById('venn-relation-badge').textContent = `当前形态：${relText}`;
+
+            // 同步更新 SVG 圆形及遮罩几何参数
+            const circleIdsA = ['def-circle-A', 'mask-out-A', 'mask-onlyA-A', 'mask-onlyB-A', 'stroke-circle-A'];
+            const circleIdsB = ['def-circle-B', 'mask-out-B', 'mask-onlyA-B', 'mask-onlyB-B', 'region-both', 'stroke-circle-B'];
+
+            circleIdsA.forEach(id => {
+                const el = document.getElementById(id);
+                el.setAttribute('cx', geom.ax);
+                el.setAttribute('cy', geom.ay);
+                el.setAttribute('r', geom.ar);
+            });
+            circleIdsB.forEach(id => {
+                const el = document.getElementById(id);
+                el.setAttribute('cx', geom.bx);
+                el.setAttribute('cy', geom.by);
+                el.setAttribute('r', geom.br);
+            });
+
+            // 当 A = B 时，让 B 的外框变为虚线以便同时看到蓝橙双色圈
+            const strokeB = document.getElementById('stroke-circle-B');
+            if (isEqual) {
+                strokeB.setAttribute('stroke-dasharray', '8 6');
+            } else {
+                strokeB.removeAttribute('stroke-dasharray');
+            }
+
+            const labelA = document.getElementById('label-circle-A');
+            const labelB = document.getElementById('label-circle-B');
+            labelA.setAttribute('x', geom.labelAx);
+            labelA.setAttribute('y', geom.labelAy);
+            labelB.setAttribute('x', geom.labelBx);
+            labelB.setAttribute('y', geom.labelBy);
+
+            // 5. 高亮当前运算对应的区域
+            const meta = vennOpMeta[vennState.op];
+            const fillActive = 'url(#hatch-pattern)';
+            const fillInactive = 'transparent';
+
+            document.getElementById('region-onlyA').setAttribute('fill', meta.regions.onlyA ? fillActive : fillInactive);
+            document.getElementById('region-both').setAttribute('fill', meta.regions.both ? fillActive : fillInactive);
+            document.getElementById('region-onlyB').setAttribute('fill', meta.regions.onlyB ? fillActive : fillInactive);
+            document.getElementById('region-outside').setAttribute('fill', meta.regions.outside ? fillActive : fillInactive);
+
+            // 6. 在 SVG 各分区内绘制具体元素勋章
+            const elemLayer = document.getElementById('venn-elements-layer');
+            elemLayer.innerHTML = '';
+
+            // 根据不同几何形态确定各分区元素放置中心点
+            let centers = {
+                onlyA: { x: 175, y: 185, cols: 2 },
+                both:  { x: 300, y: 185, cols: 2 },
+                onlyB: { x: 425, y: 185, cols: 2 },
+                outside: { x: 525, y: 185, cols: 1 }
+            };
+
+            if (isEqual) {
+                centers.both = { x: 300, y: 185, cols: 3 };
+            } else if (isASubsetB) {
+                centers.both = { x: 270, y: 195, cols: 2 };
+                centers.onlyB = { x: 375, y: 185, cols: 2 };
+            } else if (isBSubsetA) {
+                centers.both = { x: 330, y: 195, cols: 2 };
+                centers.onlyA = { x: 225, y: 185, cols: 2 };
+            } else if (isDisjoint) {
+                centers.onlyA = { x: 190, y: 185, cols: 3 };
+                centers.onlyB = { x: 410, y: 185, cols: 3 };
+            }
+
+            function drawGroupElements(items, centerInfo, isHighlighted) {
+                const count = items.length;
+                if (count === 0) return;
+                const cols = centerInfo.cols;
+                const spacingX = 32;
+                const spacingY = 32;
+                const rows = Math.ceil(count / cols);
+
+                items.forEach((val, idx) => {
+                    const r = Math.floor(idx / cols);
+                    const c = idx % cols;
+                    const itemsInThisRow = (r === rows - 1 && count % cols !== 0) ? (count % cols) : cols;
+                    const offsetX = (c - (itemsInThisRow - 1) / 2) * spacingX;
+                    const offsetY = (r - (rows - 1) / 2) * spacingY;
+
+                    const cx = centerInfo.x + offsetX;
+                    const cy = centerInfo.y + offsetY;
+
+                    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    g.setAttribute('transform', `translate(${cx}, ${cy})`);
+
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('r', '13');
+                    if (isHighlighted) {
+                        circle.setAttribute('fill', '#4f46e5');
+                        circle.setAttribute('stroke', '#ffffff');
+                        circle.setAttribute('stroke-width', '2');
+                    } else {
+                        circle.setAttribute('fill', '#f8fafc');
+                        circle.setAttribute('stroke', '#94a3b8');
+                        circle.setAttribute('stroke-width', '1.5');
+                    }
+
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('dy', '4');
+                    text.setAttribute('font-size', '12');
+                    text.setAttribute('font-weight', '700');
+                    text.setAttribute('fill', isHighlighted ? '#ffffff' : '#475569');
+                    text.textContent = val;
+
+                    g.appendChild(circle);
+                    g.appendChild(text);
+                    elemLayer.appendChild(g);
+                });
+            }
+
+            drawGroupElements(onlyA, centers.onlyA, meta.regions.onlyA);
+            drawGroupElements(both, centers.both, meta.regions.both);
+            drawGroupElements(onlyB, centers.onlyB, meta.regions.onlyB);
+            drawGroupElements(outside, centers.outside, meta.regions.outside);
+
+            // 7. 计算并输出当前运算的结果集合
+            const resultElems = [
+                ...(meta.regions.onlyA ? onlyA : []),
+                ...(meta.regions.both ? both : []),
+                ...(meta.regions.onlyB ? onlyB : []),
+                ...(meta.regions.outside ? outside : [])
+            ].sort((a, b) => a - b);
+
+            document.getElementById('venn-active-op-badge').textContent = meta.symbol;
+            document.getElementById('venn-active-op-title').textContent = meta.title;
+            document.getElementById('venn-result-roster').textContent = `${meta.symbol} = ${formatSetRoster(resultElems)}`;
+            document.getElementById('venn-result-count').textContent = `元素个数 card = ${resultElems.length}`;
+            const subCount = Math.pow(2, resultElems.length);
+            document.getElementById('venn-subset-count').textContent = `子集个数 2^${resultElems.length} = ${subCount} 个`;
+            document.getElementById('venn-result-builder').textContent = meta.builder;
+            document.getElementById('venn-result-note').textContent = meta.note;
+        }
+
+        /* =========================================================================
+           模块二：数轴与区间表示交互器状态与算法
+           ========================================================================= */
+        const intState = {
+            A: { a1: -4, a2: 2, leftClosed: true, rightClosed: false, leftInf: false, rightInf: false },
+            B: { a1: -1, a2: 5, leftClosed: false, rightClosed: true, leftInf: false, rightInf: false },
+            op: 'inter' // inter, union, compA, compB, diffAB
+        };
+
+        // 预设场景加载
+        function setIntervalPreset(preset) {
+            if (preset === 'overlap') {
+                intState.A = { a1: -4, a2: 2, leftClosed: true, rightClosed: false, leftInf: false, rightInf: false };
+                intState.B = { a1: -1, a2: 5, leftClosed: false, rightClosed: true, leftInf: false, rightInf: false };
+            } else if (preset === 'touchOpenClosed') {
+                intState.A = { a1: -5, a2: 2, leftClosed: true, rightClosed: true, leftInf: false, rightInf: false };
+                intState.B = { a1: 2, a2: 6, leftClosed: false, rightClosed: true, leftInf: false, rightInf: false };
+            } else if (preset === 'touchBothClosed') {
+                intState.A = { a1: -5, a2: 2, leftClosed: true, rightClosed: true, leftInf: false, rightInf: false };
+                intState.B = { a1: 2, a2: 6, leftClosed: true, rightClosed: false, leftInf: false, rightInf: false };
+            } else if (preset === 'infiniteRay') {
+                intState.A = { a1: -4, a2: 3, leftClosed: false, rightClosed: true, leftInf: true, rightInf: false };
+                intState.B = { a1: -1, a2: 5, leftClosed: true, rightClosed: false, leftInf: false, rightInf: true };
+            }
+            syncIntervalControls();
+            renderIntervalModule();
+        }
+
+        function setIntervalOp(op) {
+            intState.op = op;
+            renderIntervalModule();
+        }
+
+        function toggleInf(setKey, side) {
+            const s = intState[setKey];
+            if (side === 'left') {
+                s.leftInf = !s.leftInf;
+                if (s.leftInf) s.leftClosed = false; // -∞ 侧恒为开区间
+            } else {
+                s.rightInf = !s.rightInf;
+                if (s.rightInf) s.rightClosed = false; // +∞ 侧恒为开区间
+            }
+            syncIntervalControls();
+            renderIntervalModule();
+        }
+
+        function toggleClosed(setKey, side) {
+            const s = intState[setKey];
+            if (side === 'left') {
+                if (s.leftInf) return; // 无穷侧不可设为闭区间
+                s.leftClosed = !s.leftClosed;
+            } else {
+                if (s.rightInf) return;
+                s.rightClosed = !s.rightClosed;
+            }
+            syncIntervalControls();
+            renderIntervalModule();
+        }
+
+        function updateIntervalFromUI(setKey, changedSide) {
+            const s = intState[setKey];
+            const prefix = setKey === 'A' ? 'a' : 'b';
+            let v1 = parseFloat(document.getElementById(`slider-${prefix}1`).value);
+            let v2 = parseFloat(document.getElementById(`slider-${prefix}2`).value);
+
+            // 保持左端点 <= 右端点
+            if (changedSide === 'left' && v1 > v2) {
+                v2 = v1;
+                document.getElementById(`slider-${prefix}2`).value = v2;
+            } else if (changedSide === 'right' && v2 < v1) {
+                v1 = v2;
+                document.getElementById(`slider-${prefix}1`).value = v1;
+            }
+
+            s.a1 = v1;
+            s.a2 = v2;
+            syncIntervalControls();
+            renderIntervalModule();
+        }
+
+        function syncIntervalControls() {
+            ['A', 'B'].forEach(key => {
+                const s = intState[key];
+                const p = key === 'A' ? 'a' : 'b';
+                const activeColor = key === 'A' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-orange-500 border-orange-500 text-white';
+
+                document.getElementById(`slider-${p}1`).value = s.a1;
+                document.getElementById(`slider-${p}2`).value = s.a2;
+                document.getElementById(`slider-${p}1`).disabled = s.leftInf;
+                document.getElementById(`slider-${p}2`).disabled = s.rightInf;
+
+                document.getElementById(`label-${p}1-val`).textContent = s.leftInf ? '-∞' : s.a1;
+                document.getElementById(`label-${p}2-val`).textContent = s.rightInf ? '+∞' : s.a2;
+
+                // -∞ / +∞ 按钮
+                const btnInf1 = document.getElementById(`btn-${p}1-inf`);
+                const btnInf2 = document.getElementById(`btn-${p}2-inf`);
+                btnInf1.className = s.leftInf
+                    ? `px-2 py-1 rounded text-xs font-bold border ${activeColor} transition`
+                    : 'px-2 py-1 rounded text-xs font-semibold border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 transition';
+                btnInf2.className = s.rightInf
+                    ? `px-2 py-1 rounded text-xs font-bold border ${activeColor} transition`
+                    : 'px-2 py-1 rounded text-xs font-semibold border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 transition';
+
+                // 开闭按钮
+                const btnClosed1 = document.getElementById(`btn-${p}1-closed`);
+                const btnClosed2 = document.getElementById(`btn-${p}2-closed`);
+
+                if (s.leftInf) {
+                    btnClosed1.textContent = '( 恒为开区间';
+                    btnClosed1.className = 'px-2.5 py-1 rounded text-xs font-medium border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed';
+                } else if (s.leftClosed) {
+                    btnClosed1.textContent = '[ 闭区间 (含端点)';
+                    btnClosed1.className = `px-2.5 py-1 rounded text-xs font-bold border ${activeColor} transition`;
+                } else {
+                    btnClosed1.textContent = '( 开区间 (不含)';
+                    btnClosed1.className = 'px-2.5 py-1 rounded text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition';
+                }
+
+                if (s.rightInf) {
+                    btnClosed2.textContent = ') 恒为开区间';
+                    btnClosed2.className = 'px-2.5 py-1 rounded text-xs font-medium border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed';
+                } else if (s.rightClosed) {
+                    btnClosed2.textContent = '] 闭区间 (含端点)';
+                    btnClosed2.className = `px-2.5 py-1 rounded text-xs font-bold border ${activeColor} transition`;
+                } else {
+                    btnClosed2.textContent = ') 开区间 (不含)';
+                    btnClosed2.className = 'px-2.5 py-1 rounded text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition';
+                }
+            });
+        }
+
+        // 判断某个区间对象是否为空集
+        function isSingleIntervalEmpty(seg) {
+            const l = seg.leftInf ? -Infinity : seg.a1;
+            const r = seg.rightInf ? Infinity : seg.a2;
+            if (l > r) return true;
+            if (l === r && !(seg.leftClosed && seg.rightClosed)) return true;
+            return false;
+        }
+
+        // 将单个区间格式化为区间表示法与描述法
+        function formatSingleSegment(seg) {
+            if (isSingleIntervalEmpty(seg)) {
+                return { interval: '∅', builder: '∅' };
+            }
+            const l = seg.leftInf ? -Infinity : seg.a1;
+            const r = seg.rightInf ? Infinity : seg.a2;
+            if (l === r && seg.leftClosed && seg.rightClosed) {
+                return { interval: `{${l}}`, builder: `x = ${l}` };
+            }
+            const lb = seg.leftInf ? '(' : (seg.leftClosed ? '[' : '(');
+            const rb = seg.rightInf ? ')' : (seg.rightClosed ? ']' : ')');
+            const lVal = seg.leftInf ? '-∞' : seg.a1;
+            const rVal = seg.rightInf ? '+∞' : seg.a2;
+            const intervalStr = `${lb}${lVal}, ${rVal}${rb}`;
+
+            let builderStr = '';
+            if (seg.leftInf && seg.rightInf) {
+                builderStr = 'x ∈ R';
+            } else if (seg.leftInf) {
+                builderStr = `x ${seg.rightClosed ? '≤' : '<'} ${seg.a2}`;
+            } else if (seg.rightInf) {
+                builderStr = `x ${seg.leftClosed ? '≥' : '>'} ${seg.a1}`;
+            } else {
+                builderStr = `${seg.a1} ${seg.leftClosed ? '≤' : '<'} x ${seg.rightClosed ? '≤' : '<'} ${seg.a2}`;
+            }
+            return { interval: intervalStr, builder: builderStr };
+        }
+
+        // 利用特征测试点采样算法精确求解任意连续区间的交、并、补、差运算结果
+        function computeIntervalOperation(segA, segB, op) {
+            function inSeg(x, s) {
+                if (isSingleIntervalEmpty(s)) return false;
+                const l = s.leftInf ? -Infinity : s.a1;
+                const r = s.rightInf ? Infinity : s.a2;
+                if (x < l || x > r) return false;
+                if (x === l) return s.leftClosed;
+                if (x === r) return s.rightClosed;
+                return true;
+            }
+
+            function evalPoint(x) {
+                const inA = inSeg(x, segA);
+                const inB = inSeg(x, segB);
+                if (op === 'inter') return inA && inB;
+                if (op === 'union') return inA || inB;
+                if (op === 'compA') return !inA;
+                if (op === 'compB') return !inB;
+                if (op === 'diffAB') return inA && !inB;
+                return false;
+            }
+
+            // 收集所有有限关键端点并去重排序
+            const finitePts = new Set();
+            if (!segA.leftInf) finitePts.add(segA.a1);
+            if (!segA.rightInf) finitePts.add(segA.a2);
+            if (!segB.leftInf) finitePts.add(segB.a1);
+            if (!segB.rightInf) finitePts.add(segB.a2);
+            const sortedPts = Array.from(finitePts).sort((a, b) => a - b);
+
+            // 若无任何有限端点
+            if (sortedPts.length === 0) {
+                if (evalPoint(0)) {
+                    return [{ leftInf: true, rightInf: true, a1: -10, a2: 10, leftClosed: false, rightClosed: false }];
+                }
+                return [];
+            }
+
+            // 构建基本原子区间与原子单点
+            const atoms = [];
+            // 最左侧 (-∞, p0)
+            atoms.push({ type: 'open', l: -Infinity, r: sortedPts[0], test: sortedPts[0] - 1, included: evalPoint(sortedPts[0] - 1) });
+
+            for (let i = 0; i < sortedPts.length; i++) {
+                const p = sortedPts[i];
+                atoms.push({ type: 'point', val: p, included: evalPoint(p) });
+                if (i < sortedPts.length - 1) {
+                    const nextP = sortedPts[i + 1];
+                    const mid = (p + nextP) / 2;
+                    atoms.push({ type: 'open', l: p, r: nextP, test: mid, included: evalPoint(mid) });
+                }
+            }
+            // 最右侧 (pn, +∞)
+            const lastP = sortedPts[sortedPts.length - 1];
+            atoms.push({ type: 'open', l: lastP, r: Infinity, test: lastP + 1, included: evalPoint(lastP + 1) });
+
+            // 合并连续被包含的原子为标准区间段
+            const resultSegments = [];
+            let idx = 0;
+            while (idx < atoms.length) {
+                if (!atoms[idx].included) {
+                    idx++;
+                    continue;
+                }
+                let startIdx = idx;
+                while (idx + 1 < atoms.length && atoms[idx + 1].included) {
+                    idx++;
+                }
+                let endIdx = idx;
+
+                const firstAtom = atoms[startIdx];
+                const lastAtom = atoms[endIdx];
+
+                const seg = {
+                    leftInf: false,
+                    rightInf: false,
+                    a1: 0,
+                    a2: 0,
+                    leftClosed: false,
+                    rightClosed: false
+                };
+
+                if (firstAtom.type === 'point') {
+                    seg.a1 = firstAtom.val;
+                    seg.leftClosed = true;
+                } else {
+                    if (firstAtom.l === -Infinity) {
+                        seg.leftInf = true;
+                        seg.a1 = -10;
+                        seg.leftClosed = false;
+                    } else {
+                        seg.a1 = firstAtom.l;
+                        seg.leftClosed = false;
+                    }
+                }
+
+                if (lastAtom.type === 'point') {
+                    seg.a2 = lastAtom.val;
+                    seg.rightClosed = true;
+                } else {
+                    if (lastAtom.r === Infinity) {
+                        seg.rightInf = true;
+                        seg.a2 = 10;
+                        seg.rightClosed = false;
+                    } else {
+                        seg.a2 = lastAtom.r;
+                        seg.rightClosed = false;
+                    }
+                }
+
+                resultSegments.push(seg);
+                idx++;
+            }
+
+            return resultSegments;
+        }
+
+        // 渲染数轴与区间模块
+        function renderIntervalModule() {
+            // 1. 更新运算按钮激活状态
+            document.querySelectorAll('.int-op-btn').forEach(btn => {
+                const isSelected = btn.getAttribute('data-intop') === intState.op;
+                if (isSelected) {
+                    btn.className = 'int-op-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border-2 border-indigo-600 bg-indigo-600 text-white shadow-sm transition';
+                } else {
+                    btn.className = 'int-op-btn px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition';
+                }
+            });
+
+            // 2. 格式化 A、B 以及运算结果字符串
+            const fmtA = formatSingleSegment(intState.A);
+            const fmtB = formatSingleSegment(intState.B);
+            document.getElementById('int-A-badge').textContent = `A = ${fmtA.interval}`;
+            document.getElementById('int-B-badge').textContent = `B = ${fmtB.interval}`;
+
+            document.getElementById('table-A-interval').textContent = fmtA.interval;
+            document.getElementById('table-A-builder').textContent = fmtA.builder === '∅' ? '∅' : `{ x | ${fmtA.builder} }`;
+            document.getElementById('table-B-interval').textContent = fmtB.interval;
+            document.getElementById('table-B-builder').textContent = fmtB.builder === '∅' ? '∅' : `{ x | ${fmtB.builder} }`;
+
+            const resSegments = computeIntervalOperation(intState.A, intState.B, intState.op);
+
+            const opNameMap = {
+                inter: '交集 (A ∩ B)',
+                union: '并集 (A ∪ B)',
+                compA: '补集 (∁_R A)',
+                compB: '补集 (∁_R B)',
+                diffAB: '差集 A ∩ (∁_R B)'
+            };
+            document.getElementById('table-res-name').textContent = opNameMap[intState.op];
+
+            if (resSegments.length === 0) {
+                document.getElementById('table-res-interval').textContent = '∅ (空集)';
+                document.getElementById('table-res-builder').textContent = '∅';
+            } else {
+                const parts = resSegments.map(s => formatSingleSegment(s));
+                document.getElementById('table-res-interval').textContent = parts.map(p => p.interval).join(' ∪ ');
+                document.getElementById('table-res-builder').textContent = `{ x | ${parts.map(p => p.builder).join(' 或 ')} }`;
+            }
+
+            // 3. 端点重合易错点智能检测
+            checkEndpointCoincidence();
+
+            // 4. 绘制 SVG 数轴
+            drawNumberLineSVG(resSegments);
+        }
+
+        function checkEndpointCoincidence() {
+            const alertBox = document.getElementById('coincidence-alert');
+            const titleEl = document.getElementById('coincidence-title');
+            const descEl = document.getElementById('coincidence-desc');
+
+            const ptsA = [];
+            if (!intState.A.leftInf) ptsA.push({ val: intState.A.a1, closed: intState.A.leftClosed, label: '左端点 a₁' });
+            if (!intState.A.rightInf) ptsA.push({ val: intState.A.a2, closed: intState.A.rightClosed, label: '右端点 a₂' });
+
+            const ptsB = [];
+            if (!intState.B.leftInf) ptsB.push({ val: intState.B.a1, closed: intState.B.leftClosed, label: '左端点 b₁' });
+            if (!intState.B.rightInf) ptsB.push({ val: intState.B.a2, closed: intState.B.rightClosed, label: '右端点 b₂' });
+
+            let hit = null;
+            for (const pa of ptsA) {
+                for (const pb of ptsB) {
+                    if (pa.val === pb.val) {
+                        hit = { val: pa.val, pa, pb };
+                        break;
+                    }
+                }
+                if (hit) break;
+            }
+
+            // 检查集合自身左右端点重合
+            if (!hit && !intState.A.leftInf && !intState.A.rightInf && intState.A.a1 === intState.A.a2) {
+                const v = intState.A.a1;
+                const bothClosed = intState.A.leftClosed && intState.A.rightClosed;
+                alertBox.className = 'rounded-2xl p-4 border-2 border-indigo-300 bg-indigo-50/90 shadow-sm transition-all';
+                titleEl.textContent = `集合 A 左右端点重合于 x = ${v}`;
+                descEl.innerHTML = bothClosed
+                    ? `由于集合 A 在 x = ${v} 处左右均为<strong>闭区间 [v, v]</strong>，集合退化为单元素集 <strong>{${v}}</strong>。`
+                    : `由于集合 A 在 x = ${v} 处不全为闭区间（含空心点），不存在满足条件的实数，此时 <strong>A = ∅（空集）</strong>！`;
+                return;
+            }
+
+            if (hit) {
+                const v = hit.val;
+                const aIn = hit.pa.closed;
+                const bIn = hit.pb.closed;
+                alertBox.className = 'rounded-2xl p-4 border-2 border-amber-400 bg-amber-50 shadow-sm transition-all';
+                titleEl.textContent = `检测到集合 A 与 B 在 x = ${v} 处端点重合！`;
+
+                let stateStr = '';
+                if (aIn && bIn) {
+                    stateStr = `在 <strong>x = ${v}</strong> 处：集合 A 为<strong>实心闭端点</strong>（包含 ${v}），集合 B 也为<strong>实心闭端点</strong>（包含 ${v}）。<br/>
+                    • <strong>交集 A ∩ B：</strong>因为 ${v} ∈ A 且 ${v} ∈ B，所以交集结果<strong>包含 ${v}</strong>（实心闭区间或单元素集 {${v}}）。<br/>
+                    • <strong>并集 A ∪ B：</strong>两个区间在 x = ${v} 处无缝连接合并，结果<strong>包含 ${v}</strong>。`;
+                } else if (!aIn && !bIn) {
+                    stateStr = `在 <strong>x = ${v}</strong> 处：集合 A 与 B 均为<strong>空心开端点</strong>（均不含 ${v}）。<br/>
+                    • <strong>交集 A ∩ B：</strong>两者都不含 ${v}，故交集结果<strong>不含 ${v}</strong>。<br/>
+                    • <strong>并集 A ∪ B：</strong>即使两区间在数轴上紧挨着，但因为都不含 ${v}，并集在 x = ${v} 处会断开一个“针孔”，不能合并成一个连续区间！`;
+                } else {
+                    const whoHas = aIn ? '集合 A 包含（实心）' : '集合 B 包含（实心）';
+                    const whoNot = aIn ? '集合 B 不含（空心）' : '集合 A 不含（空心）';
+                    stateStr = `在 <strong>x = ${v}</strong> 处呈现经典的<strong>“一开一闭”</strong>状态：${whoHas}，而 ${whoNot}。<br/>
+                    • <strong>交集 A ∩ B：</strong>交集要求“同时属于 A 且属于 B”，因此交集结果<strong>绝不包含 ${v}（取开区间空心点）</strong>。<br/>
+                    • <strong>并集 A ∪ B：</strong>并集只要求“至少属于其中一个”，因此并集结果<strong>包含 ${v}（实心点可填补空心点实现区间连通）</strong>。`;
+                }
+                descEl.innerHTML = stateStr;
+            } else {
+                alertBox.className = 'rounded-2xl p-4 border border-slate-200 bg-slate-50 transition-all';
+                titleEl.textContent = '端点重合易错点检测雷达（待命）';
+                descEl.innerHTML = '当前集合 A 与 B 的端点未重合。您可以点击上方<strong>“② 端点重合（一开一闭 ★易错）”</strong>预设，或拖动滑块让 A 和 B 的端点重合，查看实时解析。';
+            }
+        }
+
+        // 动态绘制 SVG 数轴
+        function drawNumberLineSVG(resSegments) {
+            const svg = document.getElementById('numberline-svg');
+            // 保留 defs
+            const defs = svg.querySelector('defs').outerHTML;
+            svg.innerHTML = defs;
+
+            const axisY = 190;
+            const xMin = 50;
+            const xMax = 650;
+            // 数值范围 -10 到 10 映射到 [50, 650]，每单位 30px
+            const valToX = (v) => 350 + v * 30;
+
+            const ns = 'http://www.w3.org/2000/svg';
+
+            // 1. 绘制运算结果高亮阴影区域
+            resSegments.forEach(seg => {
+                const lVal = seg.leftInf ? -10.8 : seg.a1;
+                const rVal = seg.rightInf ? 10.8 : seg.a2;
+                const x1 = valToX(lVal);
+                const x2 = valToX(rVal);
+
+                if (Math.abs(x2 - x1) < 1) {
+                    // 单点结果高亮柱
+                    const line = document.createElementNS(ns, 'line');
+                    line.setAttribute('x1', x1);
+                    line.setAttribute('y1', 45);
+                    line.setAttribute('x2', x1);
+                    line.setAttribute('y2', axisY);
+                    line.setAttribute('stroke', '#4f46e5');
+                    line.setAttribute('stroke-width', '5');
+                    svg.appendChild(line);
+                } else {
+                    const rect = document.createElementNS(ns, 'rect');
+                    rect.setAttribute('x', x1);
+                    rect.setAttribute('y', 45);
+                    rect.setAttribute('width', Math.max(0, x2 - x1));
+                    rect.setAttribute('height', axisY - 45);
+                    rect.setAttribute('fill', 'url(#nl-hatch)');
+                    rect.setAttribute('stroke', '#6366f1');
+                    rect.setAttribute('stroke-width', '1');
+                    rect.setAttribute('stroke-dasharray', '3 3');
+                    svg.appendChild(rect);
+                }
+            });
+
+            // 2. 绘制实数轴主线与箭头
+            const axisLine = document.createElementNS(ns, 'line');
+            axisLine.setAttribute('x1', 20);
+            axisLine.setAttribute('y1', axisY);
+            axisLine.setAttribute('x2', 680);
+            axisLine.setAttribute('y2', axisY);
+            axisLine.setAttribute('stroke', '#334155');
+            axisLine.setAttribute('stroke-width', '2.5');
+            svg.appendChild(axisLine);
+
+            // 正方向箭头
+            const arrow = document.createElementNS(ns, 'polygon');
+            arrow.setAttribute('points', `684,${axisY} 672,${axisY - 6} 672,${axisY + 6}`);
+            arrow.setAttribute('fill', '#334155');
+            svg.appendChild(arrow);
+
+            const xLabel = document.createElementNS(ns, 'text');
+            xLabel.setAttribute('x', 682);
+            xLabel.setAttribute('y', axisY + 24);
+            xLabel.setAttribute('text-anchor', 'middle');
+            xLabel.setAttribute('class', 'math-font font-bold text-sm fill-slate-700');
+            xLabel.textContent = 'x';
+            svg.appendChild(xLabel);
+
+            // 3. 绘制 -10 到 10 刻度与数字
+            for (let i = -10; i <= 10; i++) {
+                const tx = valToX(i);
+                const tick = document.createElementNS(ns, 'line');
+                tick.setAttribute('x1', tx);
+                tick.setAttribute('y1', axisY - (i === 0 ? 8 : 5));
+                tick.setAttribute('x2', tx);
+                tick.setAttribute('y2', axisY + (i === 0 ? 8 : 5));
+                tick.setAttribute('stroke', i === 0 ? '#0f172a' : '#64748b');
+                tick.setAttribute('stroke-width', i === 0 ? '2.5' : '1.5');
+                svg.appendChild(tick);
+
+                const numText = document.createElementNS(ns, 'text');
+                numText.setAttribute('x', tx);
+                numText.setAttribute('y', axisY + 24);
+                numText.setAttribute('text-anchor', 'middle');
+                numText.setAttribute('font-size', i === 0 ? '13' : '11');
+                numText.setAttribute('font-weight', i === 0 ? '700' : '500');
+                numText.setAttribute('fill', i === 0 ? '#0f172a' : '#475569');
+                numText.textContent = i;
+                svg.appendChild(numText);
+            }
+
+            // 4. 绘制集合支架函数（集合 A 高度 y=75 蓝色，集合 B 高度 y=125 橙色）
+            function drawSetBracket(seg, topY, color, name) {
+                if (isSingleIntervalEmpty(seg)) return;
+
+                const x1 = seg.leftInf ? 25 : valToX(seg.a1);
+                const x2 = seg.rightInf ? 675 : valToX(seg.a2);
+
+                // 顶部横梁线
+                const topLine = document.createElementNS(ns, 'line');
+                topLine.setAttribute('x1', x1);
+                topLine.setAttribute('y1', topY);
+                topLine.setAttribute('x2', x2);
+                topLine.setAttribute('y2', topY);
+                topLine.setAttribute('stroke', color);
+                topLine.setAttribute('stroke-width', '3.5');
+                svg.appendChild(topLine);
+
+                // 左端立柱或无穷箭头
+                if (seg.leftInf) {
+                    const leftArr = document.createElementNS(ns, 'polygon');
+                    leftArr.setAttribute('points', `${x1 - 6},${topY} ${x1 + 5},${topY - 5} ${x1 + 5},${topY + 5}`);
+                    leftArr.setAttribute('fill', color);
+                    svg.appendChild(leftArr);
+                } else {
+                    const leftLeg = document.createElementNS(ns, 'line');
+                    leftLeg.setAttribute('x1', x1);
+                    leftLeg.setAttribute('y1', topY);
+                    leftLeg.setAttribute('x2', x1);
+                    leftLeg.setAttribute('y2', axisY);
+                    leftLeg.setAttribute('stroke', color);
+                    leftLeg.setAttribute('stroke-width', '2.5');
+                    svg.appendChild(leftLeg);
+                }
+
+                // 右端立柱或无穷箭头
+                if (seg.rightInf) {
+                    const rightArr = document.createElementNS(ns, 'polygon');
+                    rightArr.setAttribute('points', `${x2 + 6},${topY} ${x2 - 5},${topY - 5} ${x2 - 5},${topY + 5}`);
+                    rightArr.setAttribute('fill', color);
+                    svg.appendChild(rightArr);
+                } else {
+                    const rightLeg = document.createElementNS(ns, 'line');
+                    rightLeg.setAttribute('x1', x2);
+                    rightLeg.setAttribute('y1', topY);
+                    rightLeg.setAttribute('x2', x2);
+                    rightLeg.setAttribute('y2', axisY);
+                    rightLeg.setAttribute('stroke', color);
+                    rightLeg.setAttribute('stroke-width', '2.5');
+                    svg.appendChild(rightLeg);
+                }
+
+                // 支架上方集合名称标签
+                const midX = (x1 + x2) / 2;
+                const tagBg = document.createElementNS(ns, 'rect');
+                tagBg.setAttribute('x', midX - 24);
+                tagBg.setAttribute('y', topY - 22);
+                tagBg.setAttribute('width', 48);
+                tagBg.setAttribute('height', 18);
+                tagBg.setAttribute('rx', 4);
+                tagBg.setAttribute('fill', color);
+                svg.appendChild(tagBg);
+
+                const tagTxt = document.createElementNS(ns, 'text');
+                tagTxt.setAttribute('x', midX);
+                tagTxt.setAttribute('y', topY - 9);
+                tagTxt.setAttribute('text-anchor', 'middle');
+                tagTxt.setAttribute('font-size', '11');
+                tagTxt.setAttribute('font-weight', '700');
+                tagTxt.setAttribute('fill', '#ffffff');
+                tagTxt.textContent = name;
+                svg.appendChild(tagTxt);
+
+                // 绘制数轴上的空心/实心端点圆圈
+                if (!seg.leftInf) {
+                    drawEndpointCircle(x1, axisY, seg.leftClosed, color);
+                }
+                if (!seg.rightInf) {
+                    drawEndpointCircle(x2, axisY, seg.rightClosed, color);
+                }
+            }
+
+            function drawEndpointCircle(cx, cy, isClosed, color) {
+                const c = document.createElementNS(ns, 'circle');
+                c.setAttribute('cx', cx);
+                c.setAttribute('cy', cy);
+                c.setAttribute('r', '6');
+                c.setAttribute('stroke', color);
+                c.setAttribute('stroke-width', '2.5');
+                c.setAttribute('fill', isClosed ? color : '#ffffff');
+                svg.appendChild(c);
+            }
+
+            drawSetBracket(intState.A, 72, '#2563eb', '集合 A');
+            drawSetBracket(intState.B, 126, '#ea580c', '集合 B');
+        }
+
+        /* =========================================================================
+           页面初始化
+           ========================================================================= */
+        window.onload = function () {
+            initVennButtons();
+            renderVenn();
+            syncIntervalControls();
+            renderIntervalModule();
+        };
+    </script>
+</body>
+</html>
