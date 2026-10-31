@@ -150,10 +150,11 @@
       outline-offset: 3px;
     }
 
-    /* 每张卡片各有一个主题色：橙=机构、蓝=函数、紫=不等式 */
+    /* 每张卡片各有一个主题色：橙=机构、蓝=函数、紫=不等式、绿=集合 */
     .card-mechanism  { --accent: #f59e0b; --accent-border: rgba(245, 158, 11, 0.55); --icon-bg: linear-gradient(135deg, #f59e0b, #f97316); }
     .card-function   { --accent: #0ea5e9; --accent-border: rgba(14, 165, 233, 0.55); --icon-bg: linear-gradient(135deg, #0ea5e9, #6366f1); }
     .card-inequality { --accent: #8b5cf6; --accent-border: rgba(139, 92, 246, 0.55); --icon-bg: linear-gradient(135deg, #8b5cf6, #ec4899); }
+    .card-set        { --accent: #10b981; --accent-border: rgba(16, 185, 129, 0.55); --icon-bg: linear-gradient(135deg, #10b981, #14b8a6); }
 
     .icon {
       display: flex;
@@ -212,7 +213,7 @@
 <body>
   <div class="container">
     <header>
-      <span class="chip">🧰 共 <b id="toolCount">3</b> 个交互器</span>
+      <span class="chip">🧰 共 <b id="toolCount">4</b> 个交互器</span>
       <h1>🛠️ 我的交互工具箱</h1>
       <p class="subtitle">选择一个交互器，点击卡片进入全屏交互操作</p>
     </header>
@@ -250,6 +251,18 @@
         <div>
           <h3>不等式交互器</h3>
           <p>基本不等式的几何证明与互动探究</p>
+        </div>
+        <span class="go">进入全屏操作 <span class="arrow">→</span></span>
+      </a>
+
+      <!-- 集合与区间交互器入口 -->
+      <a class="card card-set" href="set-and-interval.html">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+        </span>
+        <div>
+          <h3>集合与区间</h3>
+          <p>集合的 Venn 图与数轴区间可视化</p>
         </div>
         <span class="go">进入全屏操作 <span class="arrow">→</span></span>
       </a>
