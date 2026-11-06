@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>高一数学精讲 · 指数函数与对数函数 平板教学交互器</title>
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --border-dark: #CBD5E1;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --primary: #2563EB;
+      --primary-light: #DBEAFE;
+      --accent-orange: #EA580C;
+      --accent-emerald: #059669;
+      --accent-red: #DC2626;
+      --accent-purple: #9333EA;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.04);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .app-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .app-badge {
+      background: #EFF6FF;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      border: 1px solid #BFDBFE;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      background: #F1F5F9;
+      padding: 4px;
+      border-radius: 10px;
+    }
+    .tab-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tab-btn.active {
+      background: #FFFFFF;
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .pen-toggle-btn {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: var(--accent-red);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .pen-toggle-btn.active {
+      background: var(--accent-red);
+      color: #FFFFFF;
+      border-color: var(--accent-red);
+      box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
+    }
+
+    /* Main Workspace */
+    .workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Canvas Arena (Left ~64%) */
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background: #FFFFFF;
+      margin: 12px 6px 12px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    #annotationCanvas {
+      pointer-events: none;
+      z-index: 5;
+    }
+    #annotationCanvas.active {
+      pointer-events: auto;
+      cursor: crosshair;
+    }
+
+    /* Canvas Float Controls */
+    .canvas-hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      z-index: 4;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hud-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .hud-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Pen Toolbar Floating Bar */
+    .pen-toolbar {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-dark);
+      border-radius: 12px;
+      padding: 6px 10px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+      z-index: 20;
+    }
+    .pen-toolbar.show {
+      display: flex;
+    }
+    .pen-tool-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: #F1F5F9;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+    .pen-tool-btn.active {
+      background: #E2E8F0;
+      border-color: var(--primary);
+    }
+    .color-swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+    .pen-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+    }
+
+    /* Control Panel (Right ~36%) */
+    .control-panel {
+      width: 360px;
+      background: #FFFFFF;
+      margin: 12px 12px 12px 6px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .control-card {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .control-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .control-value {
+      font-family: "Cambria Math", Consolas, monospace;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #E2E8F0;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .preset-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .preset-pill {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .preset-pill:hover, .preset-pill:active {
+      border-color: var(--primary);
+      background: #EFF6FF;
+      color: var(--primary);
+    }
+    .preset-pill.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #FFFFFF;
+    }
+
+    /* Switch and Checkbox Row */
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .switch-label {
+      font-size: 13px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .toggle-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* Real-time Mathematical Deduction Card */
+    .math-card {
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .math-card.blue-theme {
+      background: #EFF6FF;
+      border-color: #BFDBFE;
+    }
+    .math-card-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #92400E;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .blue-theme .math-card-title {
+      color: #1E40AF;
+    }
+    .math-card-body {
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #78350F;
+    }
+    .blue-theme .math-card-body {
+      color: #1E3A8A;
+    }
+    .math-token {
+      font-family: "Cambria Math", Consolas, monospace;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.7);
+    }
+
+    /* 78-Score Pitfall Warning Strip */
+    .trap-strip {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-left: 4px solid var(--accent-red);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #991B1B;
+    }
+    .trap-strip strong {
+      color: var(--accent-red);
+    }
+
+    /* Comparison Ruler in Lab 4 */
+    .ruler-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .ruler-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+    }
+    .ruler-tag {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ruler-val {
+      font-family: "Cambria Math", Consolas, monospace;
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .workspace {
+        flex-direction: column;
+      }
+      .control-panel {
+        width: auto;
+        height: 280px;
+        margin: 6px 12px 12px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="header-left">
+      <div class="app-title">
+        <span>📐 高一数学一对一精讲</span>
+        <span class="app-badge">平板互动教室</span>
+      </div>
+      <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchLab(1)">
+          <span>① 指数图象与变换</span>
+        </button>
+        <button class="tab-btn" onclick="switchLab(2)">
+          <span>② 对数禁区与底数</span>
+        </button>
+        <button class="tab-btn" onclick="switchLab(3)">
+          <span>③ 反函数镜像 $y=x$</span>
+        </button>
+        <button class="tab-btn" onclick="switchLab(4)">
+          <span>④ 0—1 搭桥比大小</span>
+        </button>
+      </nav>
+    </div>
+    <div>
+      <button id="penToggleBtn" class="pen-toggle-btn" onclick="togglePenMode()">
+        <span>✏️ 课堂圈画批注</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="workspace">
+    <!-- Interactive Canvas Area -->
+    <div class="canvas-container" id="canvasContainer">
+      <div class="canvas-hud" id="canvasHud">
+        <div class="hud-chip">
+          <div class="hud-dot" id="hudColorDot" style="background: var(--primary);"></div>
+          <span id="hudFunctionExpr">y = 2^x</span>
+        </div>
+        <span id="hudExtraInfo">定点 (0, 1)</span>
+      </div>
+
+      <!-- Main Math Canvas -->
+      <canvas id="mathCanvas"></canvas>
+      <!-- Transparent Annotation Canvas -->
+      <canvas id="annotationCanvas"></canvas>
+
+      <!-- Floating Annotation Toolbar -->
+      <div class="pen-toolbar" id="penToolbar">
+        <button class="pen-tool-btn active" id="btnPenRed" onclick="setPenColor('#DC2626')">
+          <div class="color-swatch" style="background: #DC2626;"></div>
+        </button>
+        <button class="pen-tool-btn" id="btnPenBlue" onclick="setPenColor('#2563EB')">
+          <div class="color-swatch" style="background: #2563EB;"></div>
+        </button>
+        <button class="pen-tool-btn" id="btnPenYellow" onclick="setPenColor('rgba(234, 179, 8, 0.4)')">
+          <div class="color-swatch" style="background: #FACC15;"></div>
+        </button>
+        <div class="pen-divider"></div>
+        <button class="pen-tool-btn" onclick="undoAnnotation()" title="撤销一步">↩</button>
+        <button class="pen-tool-btn" onclick="clearAnnotation()" title="清空所有批注">🗑</button>
+        <div class="pen-divider"></div>
+        <button class="pen-tool-btn" onclick="togglePenMode()" title="退出批注模式" style="font-size:12px; font-weight:700;">✕</button>
+      </div>
+    </div>
+
+    <!-- Right Control & Explanation Panel -->
+    <aside class="control-panel" id="controlPanel">
+      <!-- Dynamic Content Injected By Active Lab -->
+    </aside>
+  </main>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // Global State & Responsive Canvas Engine
+    // -------------------------------------------------------------------------
+    let currentLab = 1;
+    let isPenMode = false;
+    let penColor = '#DC2626';
+    let penWidth = 3;
+    let annotationPaths = [];
+    let currentPath = null;
+
+    // Viewport coordinates
+    const view = {
+      originX: 0,
+      originY: 0,
+      scaleX: 52, // pixels per unit
+      scaleY: 52,
+      minX: -4.5,
+      maxX: 5.5,
+      minY: -3.5,
+      maxY: 5.5
+    };
+
+    // Lab 1 State
+    const state1 = {
+      a: 2.0,
+      h: 0.0,
+      k: 0.0,
+      showSliceX1: true,
+      showAbs: false,
+      showMultiExp: false,
+      dragX: null
+    };
+
+    // Lab 2 State
+    const state2 = {
+      a: 2.0,
+      h: 0.0,
+      showSliceY1: true,
+      showDangerZone: true,
+      showMultiLog: false,
+      dragX: 2.0
+    };
+
+    // Lab 3 State
+    const state3 = {
+      a: 2.0,
+      x0: 1.0,
+      showSymmetryLine: true,
+      showConnectingLine: true
+    };
+
+    // Lab 4 State
+    const state4 = {
+      presetIdx: 0,
+      presets: [
+        {
+          name: "讲义例 5 · 经典指对幂三数比大小",
+          items: [
+            { label: "a", expr: "log₃(0.8)", val: Math.log(0.8)/Math.log(3), tag: "负数 < 0", color: "#DC2626" },
+            { label: "b", expr: "3^(0.2)", val: Math.pow(3, 0.2), tag: "大数 > 1", color: "#2563EB" },
+            { label: "c", expr: "0.8^(1.5)", val: Math.pow(0.8, 1.5), tag: "正数 ∈ (0, 1)", color: "#D97706" }
+          ],
+          logic: "① 先找 0：a = log₃(0.8) < log₃(1) = 0（负数独占一档）<br>② 再找 1：b = 3^(0.2) > 3^0 = 1；而 0 < c = 0.8^(1.5) < 0.8^0 = 1<br>③ 结论秒杀：<b>a < c < b</b>。"
+        },
+        {
+          name: "变式 5 · 减函数对数逆向比较",
+          items: [
+            { label: "a", expr: "log₀.₅(0.3)", val: Math.log(0.3)/Math.log(0.5), tag: "大数 > 1", color: "#2563EB" },
+            { label: "b", expr: "log₂(0.3)", val: Math.log(0.3)/Math.log(2), tag: "负数 < 0", color: "#DC2626" },
+            { label: "c", expr: "0.5^(0.3)", val: Math.pow(0.5, 0.3), tag: "正数 ∈ (0.5, 1)", color: "#D97706" }
+          ],
+          logic: "① b = log₂(0.3) < 0 垫底；<br>② c = 0.5^(0.3) ∈ (0, 1)；<br>③ a = log₀.₅(0.3) 因 0.3 < 0.5 且底数 0.5 递减，故 a > log₀.₅(0.5) = 1。<br>结论：<b>b < c < a</b>。"
+        },
+        {
+          name: "课后第 4 题 · 易错防坑实战",
+          items: [
+            { label: "a", expr: "0.6^(0.4)", val: Math.pow(0.6, 0.4), tag: "正数 ∈ (0, 1)", color: "#D97706" },
+            { label: "b", expr: "log₀.₆(0.4)", val: Math.log(0.4)/Math.log(0.6), tag: "大数 > 1", color: "#2563EB" },
+            { label: "c", expr: "log₃(0.4)", val: Math.log(0.4)/Math.log(3), tag: "负数 < 0", color: "#DC2626" }
+          ],
+          logic: "① c < 0（底数 3>1，真数 0.4<1，异号得负）；<br>② 0 < a < 1（底数 0.6 ∈ (0,1)，指数 0.4 > 0）；<br>③ b > 1（底真皆小于 1 且真数更小）。<br>结论：<b>c < a < b</b>。"
+        },
+        {
+          name: "中档进阶 · 3/2 中间量搭桥",
+          items: [
+            { label: "a", expr: "log₂(3)", val: Math.log2(3), tag: "≈ 1.585 > 1.5", color: "#2563EB" },
+            { label: "b", expr: "log₃(4)", val: Math.log(4)/Math.log(3), tag: "≈ 1.262 < 1.5", color: "#D97706" },
+            { label: "ref", expr: "中间量 1.5", val: 1.5, tag: "搭桥基准", color: "#64748B" }
+          ],
+          logic: "两数都大于 1 无法仅靠 0,1 区分时，与 1.5 = 3/2 比较：<br>因 3² = 9 > 2³ = 8，故 log₂3 > 1.5；<br>因 4² = 16 < 3³ = 27，故 log₃4 < 1.5。<br>结论：<b>log₂3 > log₃4</b>。"
+        }
+      ]
+    };
+
+    // Canvas DOM elements
+    const container = document.getElementById('canvasContainer');
+    const mathCanvas = document.getElementById('mathCanvas');
+    const annotCanvas = document.getElementById('annotationCanvas');
+    const mathCtx = mathCanvas.getContext('2d');
+    const annotCtx = annotCanvas.getContext('2d');
+    const controlPanel = document.getElementById('controlPanel');
+
+    // Handle High-DPI Scaling
+    function resizeCanvases() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const w = rect.width;
+      const h = rect.height;
+
+      mathCanvas.width = w * dpr;
+      mathCanvas.height = h * dpr;
+      annotCanvas.width = w * dpr;
+      annotCanvas.height = h * dpr;
+
+      mathCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      annotCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Adjust origin to center-left
+      if (currentLab === 3) {
+        view.originX = w * 0.42;
+        view.originY = h * 0.58;
+        view.scaleX = Math.min(w, h) / 7.2;
+        view.scaleY = view.scaleX;
+      } else if (currentLab === 4) {
+        view.originX = w * 0.35;
+        view.originY = h * 0.55;
+        view.scaleX = Math.min(w, h) / 7.5;
+        view.scaleY = view.scaleX;
+      } else {
+        view.originX = w * 0.38;
+        view.originY = h * 0.62;
+        view.scaleX = Math.min(w, h) / 7.2;
+        view.scaleY = view.scaleX;
+      }
+
+      renderCurrentLab();
+      redrawAnnotations();
+    }
+
+    window.addEventListener('resize', resizeCanvases);
+
+    // Coordinate converters
+    function toScreenX(x) { return view.originX + x * view.scaleX; }
+    function toScreenY(y) { return view.originY - y * view.scaleY; }
+    function toMathX(px) { return (px - view.originX) / view.scaleX; }
+    function toMathY(py) { return (view.originY - py) / view.scaleY; }
+
+    // -------------------------------------------------------------------------
+    // Coordinate System Drawing Helper
+    // -------------------------------------------------------------------------
+    function drawAxes(ctx, options = {}) {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+
+      // Subtle Background Grid
+      ctx.strokeStyle = '#F1F5F9';
+      ctx.lineWidth = 1;
+      const xStart = Math.floor(toMathX(0));
+      const xEnd = Math.ceil(toMathX(w));
+      const yStart = Math.floor(toMathY(h));
+      const yEnd = Math.ceil(toMathY(0));
+
+      ctx.beginPath();
+      for (let x = xStart; x <= xEnd; x++) {
+        const sx = toScreenX(x);
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, h);
+      }
+      for (let y = yStart; y <= yEnd; y++) {
+        const sy = toScreenY(y);
+        ctx.moveTo(0, sy);
+        ctx.lineTo(w, sy);
+      }
+      ctx.stroke();
+
+      // Main Cartesian Axes
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      // X-Axis
+      ctx.moveTo(0, view.originY);
+      ctx.lineTo(w - 10, view.originY);
+      // Y-Axis
+      ctx.moveTo(view.originX, h);
+      ctx.lineTo(view.originX, 10);
+      ctx.stroke();
+
+      // Arrowheads
+      ctx.fillStyle = '#334155';
+      // X arrow
+      ctx.beginPath();
+      ctx.moveTo(w - 2, view.originY);
+      ctx.lineTo(w - 12, view.originY - 5);
+      ctx.lineTo(w - 12, view.originY + 5);
+      ctx.closePath();
+      ctx.fill();
+      // Y arrow
+      ctx.beginPath();
+      ctx.moveTo(view.originX, 2);
+      ctx.lineTo(view.originX - 5, 12);
+      ctx.lineTo(view.originX + 5, 12);
+      ctx.closePath();
+      ctx.fill();
+
+      // Labels O, x, y
+      ctx.font = '13px "Cambria Math", serif';
+      ctx.fillStyle = '#0F172A';
+      ctx.fillText('x', w - 18, view.originY + 18);
+      ctx.fillText('y', view.originX + 12, 16);
+      ctx.fillText('O', view.originX - 14, view.originY + 16);
+
+      // Ticks & Numbers
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = '#64748B';
+      for (let x = xStart; x <= xEnd; x++) {
+        if (x === 0) continue;
+        const sx = toScreenX(x);
+        if (sx > 15 && sx < w - 20) {
+          ctx.beginPath();
+          ctx.moveTo(sx, view.originY - 3);
+          ctx.lineTo(sx, view.originY + 3);
+          ctx.stroke();
+          ctx.fillText(x.toString(), sx - 4, view.originY + 16);
+        }
+      }
+      for (let y = yStart; y <= yEnd; y++) {
+        if (y === 0) continue;
+        const sy = toScreenY(y);
+        if (sy > 20 && sy < h - 15) {
+          ctx.beginPath();
+          ctx.moveTo(view.originX - 3, sy);
+          ctx.lineTo(view.originX + 3, sy);
+          ctx.stroke();
+          ctx.fillText(y.toString(), view.originX - 16, sy + 4);
+        }
+      }
+    }
+
+    function drawDottedPoint(ctx, x, y, label, color = '#2563EB', hollow = false) {
+      const sx = toScreenX(x);
+      const sy = toScreenY(y);
+
+      ctx.beginPath();
+      ctx.arc(sx, sy, 5.5, 0, Math.PI * 2);
+      if (hollow) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.stroke();
+      }
+
+      if (label) {
+        ctx.font = 'bold 12.5px sans-serif';
+        const metrics = ctx.measureText(label);
+        const pad = 4;
+        const tx = sx + 8;
+        const ty = sy - 8;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fillRect(tx - pad, ty - 12, metrics.width + pad * 2, 16);
+        ctx.fillStyle = color;
+        ctx.fillText(label, tx, ty);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Lab 1: Exponential Functions & Translations
+    // -------------------------------------------------------------------------
+    function renderLab1() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      mathCtx.clearRect(0, 0, w, h);
+      drawAxes(mathCtx);
+
+      const a = state1.a;
+      const h_shift = state1.h;
+      const k_shift = state1.k;
+
+      // Asymptote line y = k_shift
+      mathCtx.save();
+      mathCtx.setLineDash([5, 4]);
+      mathCtx.strokeStyle = '#94A3B8';
+      mathCtx.lineWidth = 1.4;
+      const asyY = toScreenY(k_shift);
+      mathCtx.beginPath();
+      mathCtx.moveTo(0, asyY);
+      mathCtx.lineTo(w, asyY);
+      mathCtx.stroke();
+      mathCtx.fillStyle = '#64748B';
+      mathCtx.font = '11px sans-serif';
+      mathCtx.fillText(`渐近线 y = ${k_shift}`, 12, asyY - 6);
+      mathCtx.restore();
+
+      // Background curves if multi-curve is checked
+      if (state1.showMultiExp) {
+        const family = [
+          { base: 3, color: 'rgba(37, 99, 235, 0.35)', name: 'y=3^x' },
+          { base: 0.5, color: 'rgba(217, 119, 6, 0.4)', name: 'y=(1/2)^x' },
+          { base: 1/3, color: 'rgba(147, 51, 234, 0.35)', name: 'y=(1/3)^x' }
+        ];
+        family.forEach(item => {
+          mathCtx.strokeStyle = item.color;
+          mathCtx.lineWidth = 1.8;
+          mathCtx.beginPath();
+          let started = false;
+          for (let px = 0; px <= w; px += 3) {
+            const mx = toMathX(px);
+            const my = Math.pow(item.base, mx);
+            if (my > -10 && my < 25) {
+              const sy = toScreenY(my);
+              if (!started) { mathCtx.moveTo(px, sy); started = true; }
+              else { mathCtx.lineTo(px, sy); }
+            }
+          }
+          mathCtx.stroke();
+        });
+      }
+
+      // Vertical Slice x = 1 for base comparison
+      if (state1.showSliceX1) {
+        mathCtx.save();
+        mathCtx.setLineDash([4, 3]);
+        mathCtx.strokeStyle = '#CBD5E1';
+        mathCtx.lineWidth = 1.2;
+        const sliceX = toScreenX(1 + h_shift);
+        mathCtx.beginPath();
+        mathCtx.moveTo(sliceX, 0);
+        mathCtx.lineTo(sliceX, h);
+        mathCtx.stroke();
+        mathCtx.restore();
+
+        const sliceVal = a + k_shift;
+        drawDottedPoint(mathCtx, 1 + h_shift, sliceVal, `(1, ${sliceVal.toFixed(2)})`, '#059669');
+      }
+
+      // Main Curve: f(x) = a^(x - h) + k, or |f(x)|
+      mathCtx.save();
+      mathCtx.strokeStyle = '#2563EB';
+      mathCtx.lineWidth = 3.0;
+      mathCtx.beginPath();
+      let hasStarted = false;
+      for (let px = 0; px <= w; px += 2) {
+        const mx = toMathX(px);
+        let my = Math.pow(a, mx - h_shift) + k_shift;
+        if (state1.showAbs) my = Math.abs(my);
+
+        if (!isNaN(my) && my > -15 && my < 35) {
+          const sy = toScreenY(my);
+          if (!hasStarted) { mathCtx.moveTo(px, sy); hasStarted = true; }
+          else { mathCtx.lineTo(px, sy); }
+        }
+      }
+      mathCtx.stroke();
+      mathCtx.restore();
+
+      // Fixed Point: (h, 1 + k)
+      const fixedX = h_shift;
+      const fixedY = state1.showAbs ? Math.abs(1 + k_shift) : (1 + k_shift);
+      drawDottedPoint(mathCtx, fixedX, fixedY, `定点 (${fixedX}, ${fixedY.toFixed(1)})`, '#DC2626');
+
+      // Update HUD
+      document.getElementById('hudFunctionExpr').innerText =
+        state1.showAbs ? `y = |${a.toFixed(2)}^(x${h_shift>=0?'-'+h_shift:'+'+Math.abs(h_shift)}) ${k_shift>=0?'+'+k_shift:k_shift}|`
+                       : `y = ${a.toFixed(2)}^(x${h_shift>=0?'-'+h_shift:'+'+Math.abs(h_shift)}) ${k_shift>=0?'+'+k_shift:k_shift}`;
+      document.getElementById('hudExtraInfo').innerText = `定点 (${fixedX}, ${fixedY.toFixed(1)}) ｜ 渐近线 y=${k_shift}`;
+    }
+
+    function updateControlLab1() {
+      const a = state1.a;
+      const isInc = a > 1;
+      controlPanel.innerHTML = `
+        <div class="section-title">
+          <span>🔬 实验室 1：指数函数族与平移</span>
+        </div>
+
+        <div class="control-card">
+          <div class="control-row">
+            <div class="control-label">
+              <span>底数 a (跨过 1 发生性质翻转)</span>
+              <span class="control-value">${a.toFixed(2)}</span>
+            </div>
+            <input type="range" min="0.1" max="4.0" step="0.05" value="${a}"
+                   oninput="state1.a = parseFloat(this.value); renderLab1(); updateLab1MathCard();">
+            <div class="preset-group">
+              <button class="preset-pill ${a===1/3?'active':''}" onclick="setLab1A(1/3)">a = 1/3</button>
+              <button class="preset-pill ${a===0.5?'active':''}" onclick="setLab1A(0.5)">a = 1/2</button>
+              <button class="preset-pill ${a===2?'active':''}" onclick="setLab1A(2)">a = 2</button>
+              <button class="preset-pill ${a===Math.E?'active':''}" onclick="setLab1A(Math.E)">a = e</button>
+              <button class="preset-pill ${a===3?'active':''}" onclick="setLab1A(3)">a = 3</button>
+            </div>
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <div class="control-label">
+              <span>左右平移 h (左加右减)</span>
+              <span class="control-value">${state1.h > 0 ? '右移 '+state1.h : (state1.h < 0 ? '左移 '+Math.abs(state1.h) : '0')}</span>
+            </div>
+            <input type="range" min="-3" max="3" step="0.5" value="${state1.h}"
+                   oninput="state1.h = parseFloat(this.value); renderLab1(); updateLab1MathCard();">
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <div class="control-label">
+              <span>上下平移 k (上加下减，决定渐近线)</span>
+              <span class="control-value">${state1.k > 0 ? '+'+state1.k : state1.k}</span>
+            </div>
+            <input type="range" min="-3" max="3" step="0.5" value="${state1.k}"
+                   oninput="state1.k = parseFloat(this.value); renderLab1(); updateLab1MathCard();">
+          </div>
+        </div>
+
+        <div class="control-card">
+          <label class="switch-row">
+            <span class="switch-label">📏 作直线 x = 1 切片比较底数高低</span>
+            <input type="checkbox" class="toggle-checkbox" ${state1.showSliceX1?'checked':''}
+                   onchange="state1.showSliceX1 = this.checked; renderLab1();">
+          </label>
+          <label class="switch-row">
+            <span class="switch-label">🔄 开启绝对值翻折 y = |f(x)|</span>
+            <input type="checkbox" class="toggle-checkbox" ${state1.showAbs?'checked':''}
+                   onchange="state1.showAbs = this.checked; renderLab1(); updateLab1MathCard();">
+          </label>
+          <label class="switch-row">
+            <span class="switch-label">🌌 同屏对照 y = 3^x, (1/2)^x 经典曲线</span>
+            <input type="checkbox" class="toggle-checkbox" ${state1.showMultiExp?'checked':''}
+                   onchange="state1.showMultiExp = this.checked; renderLab1();">
+          </label>
+        </div>
+
+        <div id="lab1MathCard"></div>
+
+        <div class="trap-strip">
+          <strong>高频丢分警示：</strong><br>
+          ① 值域永远受渐近线压制：y = a^(x-h) + k 因为 a^(x-h) > 0，故 y > k，值域是 <code>(k, +∞)</code>（必须是开区间圆括号！）；<br>
+          ② 翻折到上方后，原来的负渐近线 y = -2 也会翻折成正渐近线 y = 2。
+        </div>
+      `;
+      updateLab1MathCard();
+    }
+
+    function setLab1A(val) {
+      state1.a = val;
+      renderLab1();
+      updateControlLab1();
+    }
+
+    function updateLab1MathCard() {
+      const card = document.getElementById('lab1MathCard');
+      if (!card) return;
+      const a = state1.a;
+      const isInc = a > 1;
+      const h = state1.h;
+      const k = state1.k;
+
+      card.innerHTML = `
+        <div class="math-card blue-theme">
+          <div class="math-card-title">
+            <span>📊 实时推导与考点解析</span>
+          </div>
+          <div class="math-card-body">
+            • <b>单调性</b>：底数 a = ${a.toFixed(2)} ${isInc ? '> 1 ➔ <span class="math-token">单调递增 ↗</span>' : '< 1 ➔ <span class="math-token">单调递减 ↘</span>'}<br>
+            • <b>恒过定点</b>：令指数 x - (${h}) = 0 ➔ 恒过 <span class="math-token">(${h}, ${(1+k).toFixed(1)})</span><br>
+            • <b>水平渐近线</b>：<span class="math-token">y = ${k}</span>（图象逼近但永不相交）<br>
+            • <b>值域判定</b>：因 a^(x-h) > 0，故值域为 <span class="math-token">(${k}, +∞)</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // Lab 2: Logarithmic Functions & Domain Danger Zone
+    // -------------------------------------------------------------------------
+    function renderLab2() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      mathCtx.clearRect(0, 0, w, h);
+      drawAxes(mathCtx);
+
+      const a = state2.a;
+      const h_shift = state2.h;
+
+      // Vertical Asymptote & Danger Zone (x <= h_shift)
+      const asyX = toScreenX(h_shift);
+      if (state2.showDangerZone) {
+        mathCtx.save();
+        mathCtx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+        mathCtx.fillRect(0, 0, asyX, h);
+
+        // Diagonal stripes
+        mathCtx.strokeStyle = 'rgba(239, 68, 68, 0.15)';
+        mathCtx.lineWidth = 1;
+        for (let x = -h; x < asyX; x += 16) {
+          mathCtx.beginPath();
+          mathCtx.moveTo(x, 0);
+          mathCtx.lineTo(x + h, h);
+          mathCtx.stroke();
+        }
+
+        // Danger Warning Label
+        mathCtx.font = 'bold 12px sans-serif';
+        mathCtx.fillStyle = '#DC2626';
+        mathCtx.fillText('⛔ 真数 ≤ 0 无意义禁区', Math.max(12, asyX - 165), h * 0.25);
+        mathCtx.fillText(`定义域必须：x > ${h_shift}`, Math.max(12, asyX - 165), h * 0.25 + 18);
+        mathCtx.restore();
+      }
+
+      // Asymptote line x = h_shift
+      mathCtx.save();
+      mathCtx.setLineDash([5, 4]);
+      mathCtx.strokeStyle = '#DC2626';
+      mathCtx.lineWidth = 1.4;
+      mathCtx.beginPath();
+      mathCtx.moveTo(asyX, 0);
+      mathCtx.lineTo(asyX, h);
+      mathCtx.stroke();
+      mathCtx.restore();
+
+      // Multi-log background
+      if (state2.showMultiLog) {
+        const logs = [
+          { base: 3, color: 'rgba(37, 99, 235, 0.35)' },
+          { base: 0.5, color: 'rgba(217, 119, 6, 0.4)' },
+          { base: 1/3, color: 'rgba(147, 51, 234, 0.35)' }
+        ];
+        logs.forEach(item => {
+          mathCtx.strokeStyle = item.color;
+          mathCtx.lineWidth = 1.6;
+          mathCtx.beginPath();
+          let started = false;
+          for (let px = asyX + 1; px <= w; px += 2) {
+            const mx = toMathX(px) - h_shift;
+            if (mx > 0.01) {
+              const my = Math.log(mx) / Math.log(item.base);
+              if (my > -15 && my < 20) {
+                const sy = toScreenY(my);
+                if (!started) { mathCtx.moveTo(px, sy); started = true; }
+                else { mathCtx.lineTo(px, sy); }
+              }
+            }
+          }
+          mathCtx.stroke();
+        });
+      }
+
+      // Horizontal Slice y = 1 (Intersection point x = a + h)
+      if (state2.showSliceY1) {
+        mathCtx.save();
+        mathCtx.setLineDash([4, 3]);
+        mathCtx.strokeStyle = '#CBD5E1';
+        mathCtx.lineWidth = 1.2;
+        const sliceY = toScreenY(1);
+        mathCtx.beginPath();
+        mathCtx.moveTo(0, sliceY);
+        mathCtx.lineTo(w, sliceY);
+        mathCtx.stroke();
+        mathCtx.restore();
+
+        const crossX = a + h_shift;
+        drawDottedPoint(mathCtx, crossX, 1, `底数 a = ${a.toFixed(2)}`, '#059669');
+      }
+
+      // Main Logarithmic Curve
+      mathCtx.save();
+      mathCtx.strokeStyle = '#EA580C';
+      mathCtx.lineWidth = 3.0;
+      mathCtx.beginPath();
+      let started = false;
+      for (let px = asyX + 0.5; px <= w; px += 1.5) {
+        const mx = toMathX(px) - h_shift;
+        if (mx > 0.002) {
+          const my = Math.log(mx) / Math.log(a);
+          if (!isNaN(my) && my > -15 && my < 25) {
+            const sy = toScreenY(my);
+            if (!started) { mathCtx.moveTo(px, sy); started = true; }
+            else { mathCtx.lineTo(px, sy); }
+          }
+        }
+      }
+      mathCtx.stroke();
+      mathCtx.restore();
+
+      // Fixed point (1 + h, 0)
+      drawDottedPoint(mathCtx, 1 + h_shift, 0, `定点 (${(1+h_shift).toFixed(1)}, 0)`, '#DC2626');
+
+      // Update HUD
+      document.getElementById('hudFunctionExpr').innerText = `y = log_${a.toFixed(2)}(x${h_shift>=0?'-'+h_shift:'+'+Math.abs(h_shift)})`;
+      document.getElementById('hudExtraInfo').innerText = `定点 (${(1+h_shift).toFixed(1)}, 0) ｜ 渐近线 x=${h_shift}`;
+    }
+
+    function updateControlLab2() {
+      const a = state2.a;
+      controlPanel.innerHTML = `
+        <div class="section-title">
+          <span>🔬 实验室 2：对数定义域与底数高低</span>
+        </div>
+
+        <div class="control-card">
+          <div class="control-row">
+            <div class="control-label">
+              <span>底数 a (与 1 比单调性)</span>
+              <span class="control-value">${a.toFixed(2)}</span>
+            </div>
+            <input type="range" min="0.1" max="4.0" step="0.05" value="${a}"
+                   oninput="state2.a = parseFloat(this.value); renderLab2(); updateLab2MathCard();">
+            <div class="preset-group">
+              <button class="preset-pill ${a===1/3?'active':''}" onclick="setLab2A(1/3)">a = 1/3</button>
+              <button class="preset-pill ${a===0.5?'active':''}" onclick="setLab2A(0.5)">a = 1/2</button>
+              <button class="preset-pill ${a===2?'active':''}" onclick="setLab2A(2)">a = 2</button>
+              <button class="preset-pill ${a===Math.E?'active':''}" onclick="setLab2A(Math.E)">a = e</button>
+              <button class="preset-pill ${a===3?'active':''}" onclick="setLab2A(3)">a = 3</button>
+            </div>
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <div class="control-label">
+              <span>平移量 h (移动竖直渐近线与禁区墙)</span>
+              <span class="control-value">${state2.h > 0 ? '右移 '+state2.h : (state2.h < 0 ? '左移 '+Math.abs(state2.h) : '0')}</span>
+            </div>
+            <input type="range" min="-2" max="3" step="0.5" value="${state2.h}"
+                   oninput="state2.h = parseFloat(this.value); renderLab2(); updateLab2MathCard();">
+          </div>
+        </div>
+
+        <div class="control-card">
+          <label class="switch-row">
+            <span class="switch-label">⛔ 突出显示“真数 ≤ 0 红色禁区”</span>
+            <input type="checkbox" class="toggle-checkbox" ${state2.showDangerZone?'checked':''}
+                   onchange="state2.showDangerZone = this.checked; renderLab2();">
+          </label>
+          <label class="switch-row">
+            <span class="switch-label">📏 作直线 y = 1 标尺交点横坐标即底数</span>
+            <input type="checkbox" class="toggle-checkbox" ${state2.showSliceY1?'checked':''}
+                   onchange="state2.showSliceY1 = this.checked; renderLab2();">
+          </label>
+          <label class="switch-row">
+            <span class="switch-label">🌌 同屏对照 y = log₂x, log₃x, log₁/₂x</span>
+            <input type="checkbox" class="toggle-checkbox" ${state2.showMultiLog?'checked':''}
+                   onchange="state2.showMultiLog = this.checked; renderLab2();">
+          </label>
+        </div>
+
+        <div id="lab2MathCard"></div>
+
+        <div class="trap-strip">
+          <strong>78 分必改毛病：</strong><br>
+          解对数不等式（如 log₁/₂(2x-1) ≥ -1）时，90% 学生只记得变号 2x-1 ≤ 2，<b>却漏掉了真数必须大于零 2x-1 > 0！</b><br>
+          记住左侧这堵红墙：<b>真数永远碰不到它！</b>
+        </div>
+      `;
+      updateLab2MathCard();
+    }
+
+    function setLab2A(val) {
+      state2.a = val;
+      renderLab2();
+      updateControlLab2();
+    }
+
+    function updateLab2MathCard() {
+      const card = document.getElementById('lab2MathCard');
+      if (!card) return;
+      const a = state2.a;
+      const h = state2.h;
+      card.innerHTML = `
+        <div class="math-card">
+          <div class="math-card-title">
+            <span>💡 对数判定核心口诀</span>
+          </div>
+          <div class="math-card-body">
+            • <b>严格定义域</b>：必须满足真数 x - (${h}) > 0 ➔ <span class="math-token">(${h}, +∞)</span><br>
+            • <b>过定点通法</b>：令真数内层等于 1 ➔ x = ${h} + 1 ➔ 恒过 <span class="math-token">(${(1+h).toFixed(1)}, 0)</span><br>
+            • <b>秒判底数大小</b>：作水平线 y = 1，与各曲线交点的横坐标直接等于底数 a！
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // Lab 3: Inverse Function Symmetry (y = x)
+    // -------------------------------------------------------------------------
+    function renderLab3() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      mathCtx.clearRect(0, 0, w, h);
+      drawAxes(mathCtx);
+
+      const a = state3.a;
+      const x0 = state3.x0;
+      const y0 = Math.pow(a, x0);
+
+      // Symmetry line y = x
+      if (state3.showSymmetryLine) {
+        mathCtx.save();
+        mathCtx.setLineDash([5, 4]);
+        mathCtx.strokeStyle = '#94A3B8';
+        mathCtx.lineWidth = 1.4;
+        const p1 = toScreenX(-4);
+        const q1 = toScreenY(-4);
+        const p2 = toScreenX(5);
+        const q2 = toScreenY(5);
+        mathCtx.beginPath();
+        mathCtx.moveTo(p1, q1);
+        mathCtx.lineTo(p2, q2);
+        mathCtx.stroke();
+        mathCtx.fillStyle = '#64748B';
+        mathCtx.font = 'bold 12px "Cambria Math", serif';
+        mathCtx.fillText('y = x', p2 - 30, q2 + 18);
+        mathCtx.restore();
+      }
+
+      // Draw Exponential Curve: y = a^x (Blue)
+      mathCtx.save();
+      mathCtx.strokeStyle = '#2563EB';
+      mathCtx.lineWidth = 2.6;
+      mathCtx.beginPath();
+      let started = false;
+      for (let px = 0; px <= w; px += 2) {
+        const mx = toMathX(px);
+        const my = Math.pow(a, mx);
+        if (my > -5 && my < 12) {
+          const sy = toScreenY(my);
+          if (!started) { mathCtx.moveTo(px, sy); started = true; }
+          else { mathCtx.lineTo(px, sy); }
+        }
+      }
+      mathCtx.stroke();
+      mathCtx.restore();
+
+      // Draw Logarithmic Curve: y = log_a(x) (Orange)
+      mathCtx.save();
+      mathCtx.strokeStyle = '#EA580C';
+      mathCtx.lineWidth = 2.6;
+      mathCtx.beginPath();
+      started = false;
+      const startPx = toScreenX(0.01);
+      for (let px = Math.max(0, startPx); px <= w; px += 2) {
+        const mx = toMathX(px);
+        if (mx > 0.005) {
+          const my = Math.log(mx) / Math.log(a);
+          if (my > -8 && my < 8) {
+            const sy = toScreenY(my);
+            if (!started) { mathCtx.moveTo(px, sy); started = true; }
+            else { mathCtx.lineTo(px, sy); }
+          }
+        }
+      }
+      mathCtx.stroke();
+      mathCtx.restore();
+
+      // Connecting Segment PP' & Perpendicular Bisector
+      if (state3.showConnectingLine && y0 > 0.001) {
+        mathCtx.save();
+        mathCtx.setLineDash([3, 3]);
+        mathCtx.strokeStyle = '#64748B';
+        mathCtx.lineWidth = 1.3;
+        const spx = toScreenX(x0);
+        const spy = toScreenY(y0);
+        const sqx = toScreenX(y0);
+        const sqy = toScreenY(x0);
+
+        mathCtx.beginPath();
+        mathCtx.moveTo(spx, spy);
+        mathCtx.lineTo(sqx, sqy);
+        mathCtx.stroke();
+
+        // Midpoint on y = x
+        const midX = (x0 + y0) / 2;
+        const midY = (x0 + y0) / 2;
+        drawDottedPoint(mathCtx, midX, midY, null, '#94A3B8', true);
+        mathCtx.restore();
+      }
+
+      // Draw Point P(x0, y0) on Exp and P'(y0, x0) on Log
+      drawDottedPoint(mathCtx, x0, y0, `P (${x0.toFixed(2)}, ${y0.toFixed(2)})`, '#2563EB');
+      if (y0 > 0.001) {
+        drawDottedPoint(mathCtx, y0, x0, `P' (${y0.toFixed(2)}, ${x0.toFixed(2)})`, '#EA580C');
+      }
+
+      // Standard Fixed Points (0,1) and (1,0)
+      drawDottedPoint(mathCtx, 0, 1, '(0, 1)', '#2563EB', true);
+      drawDottedPoint(mathCtx, 1, 0, '(1, 0)', '#EA580C', true);
+
+      // HUD update
+      document.getElementById('hudFunctionExpr').innerText = `y = ${a.toFixed(1)}^x 与 y = log_${a.toFixed(1)}x`;
+      document.getElementById('hudExtraInfo').innerText = `P(${x0.toFixed(1)}, ${y0.toFixed(1)}) ⟷ P'(${y0.toFixed(1)}, ${x0.toFixed(1)})`;
+    }
+
+    function updateControlLab3() {
+      const a = state3.a;
+      const x0 = state3.x0;
+      const y0 = Math.pow(a, x0);
+      controlPanel.innerHTML = `
+        <div class="section-title">
+          <span>🔬 实验室 3：反函数 y = x 镜像对称</span>
+        </div>
+
+        <div class="control-card">
+          <div class="control-row">
+            <div class="control-label">
+              <span>底数 a (同底指数与对数)</span>
+              <span class="control-value">${a.toFixed(1)}</span>
+            </div>
+            <div class="preset-group">
+              <button class="preset-pill ${a===2?'active':''}" onclick="state3.a=2; renderLab3(); updateControlLab3();">a = 2</button>
+              <button class="preset-pill ${a===Math.E?'active':''}" onclick="state3.a=Math.E; renderLab3(); updateControlLab3();">a = e</button>
+              <button class="preset-pill ${a===3?'active':''}" onclick="state3.a=3; renderLab3(); updateControlLab3();">a = 3</button>
+              <button class="preset-pill ${a===0.5?'active':''}" onclick="state3.a=0.5; renderLab3(); updateControlLab3();">a = 1/2</button>
+            </div>
+          </div>
+
+          <div class="control-row" style="margin-top:6px;">
+            <div class="control-label">
+              <span>动点 P 的横坐标 x₀ (手指滑动观察映射)</span>
+              <span class="control-value">${x0.toFixed(2)}</span>
+            </div>
+            <input type="range" min="-1.5" max="2.2" step="0.05" value="${x0}"
+                   oninput="state3.x0 = parseFloat(this.value); renderLab3(); updateLab3MathCard();">
+          </div>
+        </div>
+
+        <div class="control-card">
+          <label class="switch-row">
+            <span class="switch-label">🪞 显示对称镜面直线 y = x</span>
+            <input type="checkbox" class="toggle-checkbox" ${state3.showSymmetryLine?'checked':''}
+                   onchange="state3.showSymmetryLine = this.checked; renderLab3();">
+          </label>
+          <label class="switch-row">
+            <span class="switch-label">📐 显示对称线段与垂直平分</span>
+            <input type="checkbox" class="toggle-checkbox" ${state3.showConnectingLine?'checked':''}
+                   onchange="state3.showConnectingLine = this.checked; renderLab3();">
+          </label>
+        </div>
+
+        <div id="lab3MathCard"></div>
+
+        <div class="trap-strip">
+          <strong>解题秒杀技巧：</strong><br>
+          “若点 (m, n) 在指数函数 y = a^x 上，则点 (n, m) 必在对数函数 y = log_a(x) 上！”<br>
+          两者的定义域与值域完全互换：<br>
+          指数定义域 R ➔ 变对数的值域 R；指数值域 (0,+∞) ➔ 变对数的定义域 (0,+∞)。
+        </div>
+      `;
+      updateLab3MathCard();
+    }
+
+    function updateLab3MathCard() {
+      const card = document.getElementById('lab3MathCard');
+      if (!card) return;
+      const x0 = state3.x0;
+      const a = state3.a;
+      const y0 = Math.pow(a, x0);
+      card.innerHTML = `
+        <div class="math-card blue-theme">
+          <div class="math-card-title">
+            <span>✨ 坐标互换实时看板</span>
+          </div>
+          <div class="math-card-body">
+            • <b>指数曲线上动点 P</b>：<span class="math-token">(${x0.toFixed(2)}, ${y0.toFixed(2)})</span><br>
+            • <b>对数曲线上镜像点 P'</b>：<span class="math-token">(${y0.toFixed(2)}, ${x0.toFixed(2)})</span><br>
+            • <b>线段中点必在 y = x 上</b>：<span class="math-token">${((x0+y0)/2).toFixed(2)} = ${((x0+y0)/2).toFixed(2)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // Lab 4: 0-1 Bridging Ruler for Number Comparison
+    // -------------------------------------------------------------------------
+    function renderLab4() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      mathCtx.clearRect(0, 0, w, h);
+
+      const curPreset = state4.presets[state4.presetIdx];
+      const items = curPreset.items;
+
+      // Draw Left Half: Function Curves illustrating roots
+      drawAxes(mathCtx);
+
+      // Draw Right Half: Vertical Comparison Ruler (x ≈ w * 0.72)
+      const rulerX = w * 0.76;
+      mathCtx.save();
+
+      // Ruler axis line
+      mathCtx.strokeStyle = '#475569';
+      mathCtx.lineWidth = 2.5;
+      mathCtx.beginPath();
+      mathCtx.moveTo(rulerX, h - 30);
+      mathCtx.lineTo(rulerX, 30);
+      mathCtx.stroke();
+
+      // Top arrow
+      mathCtx.fillStyle = '#475569';
+      mathCtx.beginPath();
+      mathCtx.moveTo(rulerX, 20);
+      mathCtx.lineTo(rulerX - 5, 32);
+      mathCtx.lineTo(rulerX + 5, 32);
+      mathCtx.closePath();
+      mathCtx.fill();
+      mathCtx.font = 'bold 12px sans-serif';
+      mathCtx.fillText('值大小标尺', rulerX - 30, 16);
+
+      // 0 Benchmark Line
+      const y0Screen = toScreenY(0);
+      mathCtx.strokeStyle = '#DC2626';
+      mathCtx.lineWidth = 1.4;
+      mathCtx.setLineDash([4, 3]);
+      mathCtx.beginPath();
+      mathCtx.moveTo(rulerX - 40, y0Screen);
+      mathCtx.lineTo(rulerX + 60, y0Screen);
+      mathCtx.stroke();
+      mathCtx.fillStyle = '#DC2626';
+      mathCtx.font = 'bold 12px sans-serif';
+      mathCtx.fillText('— 0 分界线 (负数区 ⬇)', rulerX + 8, y0Screen + 16);
+
+      // 1 Benchmark Line
+      const y1Screen = toScreenY(1);
+      mathCtx.strokeStyle = '#2563EB';
+      mathCtx.beginPath();
+      mathCtx.moveTo(rulerX - 40, y1Screen);
+      mathCtx.lineTo(rulerX + 60, y1Screen);
+      mathCtx.stroke();
+      mathCtx.fillStyle = '#2563EB';
+      mathCtx.fillText('— 1 分界线 (大数区 ⬆)', rulerX + 8, y1Screen - 6);
+
+      // Mark the 3 items on the ruler
+      items.forEach((it, idx) => {
+        const sy = toScreenY(it.val);
+        // Leader line from left
+        mathCtx.setLineDash([]);
+        mathCtx.strokeStyle = it.color;
+        mathCtx.lineWidth = 1.8;
+        mathCtx.beginPath();
+        mathCtx.moveTo(rulerX - 16, sy);
+        mathCtx.lineTo(rulerX + 6, sy);
+        mathCtx.stroke();
+
+        // Pin Point
+        mathCtx.beginPath();
+        mathCtx.arc(rulerX, sy, 5.5, 0, Math.PI * 2);
+        mathCtx.fillStyle = it.color;
+        mathCtx.fill();
+        mathCtx.lineWidth = 2;
+        mathCtx.strokeStyle = '#FFFFFF';
+        mathCtx.stroke();
+
+        // Card Label on ruler
+        mathCtx.font = 'bold 13px sans-serif';
+        mathCtx.fillStyle = it.color;
+        mathCtx.fillText(`${it.label} = ${it.expr}`, rulerX - 150, sy + 4);
+        mathCtx.font = '11px sans-serif';
+        mathCtx.fillText(`≈ ${it.val.toFixed(3)}`, rulerX + 14, sy + 4);
+      });
+
+      mathCtx.restore();
+
+      // Update HUD
+      document.getElementById('hudFunctionExpr').innerText = curPreset.name;
+      document.getElementById('hudExtraInfo').innerText = "0 与 1 搭桥分区法";
+    }
+
+    function updateControlLab4() {
+      const curPreset = state4.presets[state4.presetIdx];
+      controlPanel.innerHTML = `
+        <div class="section-title">
+          <span>🔬 实验室 4：指对幂比大小 0—1 标尺</span>
+        </div>
+
+        <div class="control-card">
+          <div class="control-label">
+            <span>选择典型经典题组 (讲义原题与变式)</span>
+          </div>
+          <div class="preset-group" style="flex-direction:column; gap:6px;">
+            ${state4.presets.map((p, idx) => `
+              <button class="preset-pill ${idx===state4.presetIdx?'active':''}"
+                      style="text-align:left; padding:8px 10px;"
+                      onclick="state4.presetIdx=${idx}; renderLab4(); updateControlLab4();">
+                ${p.name}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="control-card">
+          <div class="section-title" style="font-size:13px;">
+            <span>📋 三数实时标尺读数</span>
+          </div>
+          <div class="ruler-container">
+            ${curPreset.items.map(it => `
+              <div class="ruler-item" style="border-left: 4px solid ${it.color};">
+                <div class="ruler-tag" style="color: ${it.color};">
+                  <span>${it.label} = ${it.expr}</span>
+                  <span style="font-size:11px; font-weight:normal; color:#64748B;">(${it.tag})</span>
+                </div>
+                <div class="ruler-val" style="color: ${it.color};">
+                  ${it.val.toFixed(3)}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="math-card">
+          <div class="math-card-title">
+            <span>🧠 破题通法 · 三步逻辑推导</span>
+          </div>
+          <div class="math-card-body">
+            ${curPreset.logic}
+          </div>
+        </div>
+
+        <div class="trap-strip">
+          <strong>做题套路总结：</strong><br>
+          先判正负挑出负数（底真一大于 1 一小于 1 则小于 0）；<br>
+          再把剩下的正数与 1 比较（同正同负大于 0，指数大于 0 还是小于 0）。<br>
+          绝大部分高考与期中题用 0 和 1 两把尺子直接切出高下！
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // Lab Navigation Switcher
+    // -------------------------------------------------------------------------
+    function switchLab(labId) {
+      currentLab = labId;
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx + 1 === labId);
+      });
+
+      if (labId === 1) {
+        document.getElementById('hudColorDot').style.background = '#2563EB';
+        updateControlLab1();
+      } else if (labId === 2) {
+        document.getElementById('hudColorDot').style.background = '#EA580C';
+        updateControlLab2();
+      } else if (labId === 3) {
+        document.getElementById('hudColorDot').style.background = '#9333EA';
+        updateControlLab3();
+      } else if (labId === 4) {
+        document.getElementById('hudColorDot').style.background = '#059669';
+        updateControlLab4();
+      }
+
+      resizeCanvases();
+    }
+
+    function renderCurrentLab() {
+      if (currentLab === 1) renderLab1();
+      else if (currentLab === 2) renderLab2();
+      else if (currentLab === 3) renderLab3();
+      else if (currentLab === 4) renderLab4();
+    }
+
+    // -------------------------------------------------------------------------
+    // Tablet Annotation Layer (✏️ 课堂圈画批注)
+    // -------------------------------------------------------------------------
+    function togglePenMode() {
+      isPenMode = !isPenMode;
+      const toggleBtn = document.getElementById('penToggleBtn');
+      const toolbar = document.getElementById('penToolbar');
+      const canvasEl = document.getElementById('annotationCanvas');
+
+      if (isPenMode) {
+        toggleBtn.classList.add('active');
+        toggleBtn.innerHTML = '<span>✕ 退出批注模式</span>';
+        toolbar.classList.add('show');
+        canvasEl.classList.add('active');
+      } else {
+        toggleBtn.classList.remove('active');
+        toggleBtn.innerHTML = '<span>✏️ 课堂圈画批注</span>';
+        toolbar.classList.remove('show');
+        canvasEl.classList.remove('active');
+      }
+    }
+
+    function setPenColor(color) {
+      penColor = color;
+      document.querySelectorAll('.pen-tool-btn').forEach(btn => btn.classList.remove('active'));
+      if (color === '#DC2626') document.getElementById('btnPenRed').classList.add('active');
+      else if (color === '#2563EB') document.getElementById('btnPenBlue').classList.add('active');
+      else if (color.includes('234')) document.getElementById('btnPenYellow').classList.add('active');
+    }
+
+    function clearAnnotation() {
+      annotationPaths = [];
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      annotCtx.clearRect(0, 0, w, h);
+    }
+
+    function undoAnnotation() {
+      annotationPaths.pop();
+      redrawAnnotations();
+    }
+
+    function redrawAnnotations() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      annotCtx.clearRect(0, 0, w, h);
+
+      annotationPaths.forEach(path => {
+        if (path.points.length < 2) return;
+        annotCtx.save();
+        annotCtx.strokeStyle = path.color;
+        annotCtx.lineWidth = path.width;
+        annotCtx.lineCap = 'round';
+        annotCtx.lineJoin = 'round';
+        annotCtx.beginPath();
+        annotCtx.moveTo(path.points[0].x, path.points[0].y);
+        for (let i = 1; i < path.points.length; i++) {
+          annotCtx.lineTo(path.points[i].x, path.points[i].y);
+        }
+        annotCtx.stroke();
+        annotCtx.restore();
+      });
+    }
+
+    // Pointer Events for Annotation Drawing
+    annotCanvas.addEventListener('pointerdown', (e) => {
+      if (!isPenMode) return;
+      annotCanvas.setPointerCapture(e.pointerId);
+      const rect = annotCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      currentPath = {
+        color: penColor,
+        width: penColor.includes('rgba') ? 14 : 3,
+        points: [{ x, y }]
+      };
+      annotationPaths.push(currentPath);
+    });
+
+    annotCanvas.addEventListener('pointermove', (e) => {
+      if (!isPenMode || !currentPath) return;
+      const rect = annotCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      currentPath.points.push({ x, y });
+
+      // Fast incremental draw
+      annotCtx.save();
+      annotCtx.strokeStyle = currentPath.color;
+      annotCtx.lineWidth = currentPath.width;
+      annotCtx.lineCap = 'round';
+      annotCtx.lineJoin = 'round';
+      const pts = currentPath.points;
+      if (pts.length >= 2) {
+        annotCtx.beginPath();
+        annotCtx.moveTo(pts[pts.length - 2].x, pts[pts.length - 2].y);
+        annotCtx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        annotCtx.stroke();
+      }
+      annotCtx.restore();
+    });
+
+    annotCanvas.addEventListener('pointerup', () => {
+      currentPath = null;
+    });
+
+    // -------------------------------------------------------------------------
+    // Initialization
+    // -------------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      switchLab(1);
+    });
+  </script>
+</body>
+</html>
