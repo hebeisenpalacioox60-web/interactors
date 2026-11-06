@@ -5,273 +5,498 @@
   <!-- 声明允许在移动端/平板端全屏独立运行，剥离浏览器顶栏 -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#f4f6fb" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f5f2ea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的交互工具箱</title>
   <style>
+    /* ========== 设计基调：「数学笔记本」—— 暖白纸张 + 坐标网格 + 衬线标题 ========== */
     :root {
-      --bg: #f4f6fb;
-      --card-bg: #ffffff;
-      --card-border: rgba(15, 23, 42, 0.08);
-      --text-primary: #0f172a;
-      --text-secondary: #64748b;
-      --chip-text: #4f46e5;
-      --chip-bg: rgba(79, 70, 229, 0.08);
-      --chip-border: rgba(79, 70, 229, 0.18);
-      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 16px rgba(15, 23, 42, 0.06);
-      --shadow-lg: 0 6px 12px rgba(15, 23, 42, 0.08), 0 20px 40px rgba(15, 23, 42, 0.14);
+      --bg: #f5f2ea;
+      --grid-line: rgba(60, 50, 30, 0.06);
+      --grid-line-strong: rgba(60, 50, 30, 0.10);
+      --card-bg: rgba(255, 253, 248, 0.86);
+      --card-border: rgba(40, 32, 20, 0.10);
+      --text-primary: #1c1a17;
+      --text-secondary: #6b6559;
+      --text-faint: #a39c8e;
+      --divider: rgba(40, 32, 20, 0.10);
+      --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 1px 2px rgba(40, 32, 20, 0.04), 0 4px 14px rgba(40, 32, 20, 0.05);
+      --shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 4px 10px rgba(40, 32, 20, 0.06), 0 22px 44px -12px rgba(40, 32, 20, 0.22);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, serif;
+      --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #0b1020;
-        --card-bg: #161d33;
-        --card-border: rgba(148, 163, 184, 0.16);
-        --text-primary: #e2e8f0;
-        --text-secondary: #94a3b8;
-        --chip-text: #a5b4fc;
-        --chip-bg: rgba(129, 140, 248, 0.12);
-        --chip-border: rgba(129, 140, 248, 0.28);
-        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 16px rgba(0, 0, 0, 0.35);
-        --shadow-lg: 0 6px 12px rgba(0, 0, 0, 0.4), 0 20px 40px rgba(0, 0, 0, 0.5);
+        --bg: #0f1115;
+        --grid-line: rgba(200, 210, 230, 0.035);
+        --grid-line-strong: rgba(200, 210, 230, 0.065);
+        --card-bg: rgba(24, 27, 34, 0.86);
+        --card-border: rgba(200, 210, 230, 0.09);
+        --text-primary: #ece8df;
+        --text-secondary: #9a968c;
+        --text-faint: #5f5c56;
+        --divider: rgba(200, 210, 230, 0.08);
+        --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 4px 14px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 22px 44px -12px rgba(0, 0, 0, 0.6);
       }
     }
 
     * { box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: var(--font-sans);
       margin: 0;
       min-height: 100vh;
-      padding: 56px 24px 72px;
+      padding: 72px 28px 64px;
       color: var(--text-primary);
       background-color: var(--bg);
+      /* 坐标纸网格：小格 24px，大格 120px */
+      background-image:
+        linear-gradient(var(--grid-line-strong) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line-strong) 1px, transparent 1px),
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+      background-position: -1px -1px;
+      background-attachment: fixed;
       display: flex;
       justify-content: center;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* 背景装饰光斑，营造柔和的层次感 */
-    body::before,
-    body::after {
+    /* 四周渐隐，让网格只在中心区域若隐若现 */
+    body::before {
       content: "";
       position: fixed;
+      inset: 0;
       z-index: -1;
-      border-radius: 50%;
-      filter: blur(90px);
       pointer-events: none;
-    }
-    body::before {
-      width: 480px;
-      height: 480px;
-      top: -160px;
-      left: -120px;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.20), transparent 70%);
-    }
-    body::after {
-      width: 540px;
-      height: 540px;
-      right: -160px;
-      bottom: -200px;
-      background: radial-gradient(circle, rgba(14, 165, 233, 0.18), transparent 70%);
+      background: radial-gradient(ellipse 80% 70% at 50% 35%, transparent 30%, var(--bg) 100%);
     }
 
     .container {
       width: 100%;
-      max-width: 1080px;
-      animation: fadeUp 0.5s ease backwards;
+      max-width: 1120px;
+      display: flex;
+      flex-direction: column;
     }
 
-    header { margin-bottom: 36px; }
+    /* ---------- 头部 ---------- */
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+      padding-bottom: 28px;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--divider);
+      animation: fadeUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+    }
 
-    .chip {
-      display: inline-flex;
+    .eyebrow {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 16px;
-      padding: 5px 14px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--chip-text);
-      background: var(--chip-bg);
-      border: 1px solid var(--chip-border);
+      gap: 10px;
+      margin-bottom: 18px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.6;
     }
 
     h1 {
-      margin: 0 0 10px;
-      font-size: clamp(1.6rem, 4vw, 2.1rem);
-      letter-spacing: 0.02em;
-      background: linear-gradient(120deg, #4f46e5, #0ea5e9 55%, #8b5cf6);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      margin: 0;
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: clamp(2.1rem, 5.5vw, 3.2rem);
+      line-height: 1.1;
+      letter-spacing: 0.04em;
+    }
+    h1 .dot {
+      display: inline-block;
+      width: 0.22em;
+      height: 0.22em;
+      margin-left: 0.12em;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e0672b, #c2410c);
+      vertical-align: baseline;
     }
 
     .subtitle {
-      margin: 0;
-      font-size: 0.95rem;
+      margin: 14px 0 0;
+      font-size: 0.98rem;
       color: var(--text-secondary);
     }
 
+    .counter {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+    }
+    .counter b {
+      font-family: var(--font-serif);
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
+      color: var(--text-primary);
+    }
+
+    /* ---------- 卡片网格 ---------- */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 20px;
+      counter-reset: card;
     }
 
     .card {
+      --mx: 50%;
+      --my: 0%;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      padding: 24px 22px;
-      border-radius: 18px;
+      min-height: 248px;
+      padding: 22px 22px 18px;
+      border-radius: 20px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       box-shadow: var(--shadow-sm);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
       text-decoration: none;
       color: inherit;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-      animation: fadeUp 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+      counter-increment: card;
+      transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+      animation: fadeUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
     }
-    .card:nth-child(1) { animation-delay: 0.08s; }
-    .card:nth-child(2) { animation-delay: 0.16s; }
+    .card:nth-child(1) { animation-delay: 0.10s; }
+    .card:nth-child(2) { animation-delay: 0.17s; }
     .card:nth-child(3) { animation-delay: 0.24s; }
-    .card:nth-child(n+4) { animation-delay: 0.32s; }
+    .card:nth-child(4) { animation-delay: 0.31s; }
+    .card:nth-child(n+5) { animation-delay: 0.38s; }
+
+    /* 跟随鼠标的柔光 */
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: radial-gradient(360px circle at var(--mx) var(--my), var(--accent-soft), transparent 65%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    /* 顶部主题色细线，悬停时展开 */
+    .card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 22px;
+      right: 22px;
+      height: 2px;
+      border-radius: 0 0 2px 2px;
+      background: var(--accent);
+      transform: scaleX(0.18);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
 
     .card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-6px);
       border-color: var(--accent-border);
       box-shadow: var(--shadow-lg);
     }
-    .card:active { transform: scale(0.98); }
+    .card:hover::before { opacity: 1; }
+    .card:hover::after { transform: scaleX(1); }
+    .card:active { transform: translateY(-2px) scale(0.985); }
     .card:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 3px;
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
     }
 
-    /* 每张卡片各有一个主题色：橙=机构、蓝=函数、紫=不等式、绿=集合 */
-    .card-mechanism  { --accent: #f59e0b; --accent-border: rgba(245, 158, 11, 0.55); --icon-bg: linear-gradient(135deg, #f59e0b, #f97316); }
-    .card-function   { --accent: #0ea5e9; --accent-border: rgba(14, 165, 233, 0.55); --icon-bg: linear-gradient(135deg, #0ea5e9, #6366f1); }
-    .card-inequality { --accent: #8b5cf6; --accent-border: rgba(139, 92, 246, 0.55); --icon-bg: linear-gradient(135deg, #8b5cf6, #ec4899); }
-    .card-set        { --accent: #10b981; --accent-border: rgba(16, 185, 129, 0.55); --icon-bg: linear-gradient(135deg, #10b981, #14b8a6); }
+    /* 每张卡片各有一个主题色：赭橙=机构、靛蓝=函数、绛紫=不等式、松绿=集合 */
+    .card-mechanism  { --accent: #d9622b; --accent-border: rgba(217, 98, 43, 0.45);  --accent-soft: rgba(217, 98, 43, 0.10);  --accent-tint: rgba(217, 98, 43, 0.10); }
+    .card-function   { --accent: #2f6fdb; --accent-border: rgba(47, 111, 219, 0.45); --accent-soft: rgba(47, 111, 219, 0.10); --accent-tint: rgba(47, 111, 219, 0.10); }
+    .card-inequality { --accent: #9a4fd1; --accent-border: rgba(154, 79, 209, 0.45); --accent-soft: rgba(154, 79, 209, 0.10); --accent-tint: rgba(154, 79, 209, 0.10); }
+    .card-set        { --accent: #15936e; --accent-border: rgba(21, 147, 110, 0.45); --accent-soft: rgba(21, 147, 110, 0.10); --accent-tint: rgba(21, 147, 110, 0.10); }
+    .card-log        { --accent: #c73a5c; --accent-border: rgba(199, 58, 92, 0.45);  --accent-soft: rgba(199, 58, 92, 0.10);  --accent-tint: rgba(199, 58, 92, 0.10); }
+    @media (prefers-color-scheme: dark) {
+      .card-mechanism  { --accent: #f08a55; }
+      .card-function   { --accent: #6ea1ff; }
+      .card-inequality { --accent: #c08cf0; }
+      .card-set        { --accent: #4cc9a0; }
+      .card-log        { --accent: #f07a96; }
+      .card { --accent-soft: rgba(255, 255, 255, 0.05); }
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 26px;
+    }
 
     .icon {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 52px;
-      height: 52px;
+      width: 50px;
+      height: 50px;
       border-radius: 14px;
-      background: var(--icon-bg);
-      color: #ffffff;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 8px 16px -8px var(--accent);
-      transition: transform 0.18s ease;
+      color: var(--accent);
+      background: var(--accent-tint);
+      border: 1px solid var(--accent-border);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, color 0.25s ease;
     }
-    .card:hover .icon { transform: scale(1.08) rotate(-4deg); }
-    .icon svg { width: 26px; height: 26px; }
+    .icon svg { width: 24px; height: 24px; }
+    .card:hover .icon {
+      transform: rotate(-6deg) scale(1.06);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* 自动编号：01 / 02 / 03 …… */
+    .idx {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      color: var(--text-faint);
+      transition: color 0.25s ease;
+    }
+    .idx::before { content: "No." counter(card, decimal-leading-zero); }
+    .card:hover .idx { color: var(--accent); }
 
     .card h3 {
-      margin: 0 0 6px;
-      font-size: 1.12rem;
+      margin: 0 0 8px;
+      font-family: var(--font-serif);
+      font-size: 1.28rem;
       font-weight: 700;
+      letter-spacing: 0.03em;
     }
     .card p {
       margin: 0;
       font-size: 0.88rem;
-      line-height: 1.6;
+      line-height: 1.7;
       color: var(--text-secondary);
     }
 
-    .go {
+    .card-foot {
       margin-top: auto;
+      padding-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px dashed var(--divider);
+    }
+    .card-body { margin-bottom: 20px; }
+
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: var(--text-faint);
+    }
+
+    .go {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.84rem;
+      gap: 8px;
+      font-size: 0.82rem;
       font-weight: 600;
-      color: var(--accent);
+      color: var(--text-secondary);
+      transition: color 0.25s ease;
     }
-    .go .arrow { transition: transform 0.18s ease; }
-    .card:hover .go .arrow { transform: translateX(4px); }
+    .go .arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--card-border);
+      transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1), background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    }
+    .go .arrow svg { width: 14px; height: 14px; }
+    .card:hover .go { color: var(--accent); }
+    .card:hover .go .arrow {
+      transform: translateX(3px);
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ---------- 页脚 ---------- */
+    footer {
+      margin-top: 48px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--text-faint);
+      animation: fadeUp 0.6s 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+    }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(14px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .container, .card, .icon, .go .arrow { animation: none; transition: none; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
     }
 
-    @media (max-width: 480px) {
-      body { padding: 40px 18px 56px; }
-      .grid { grid-template-columns: 1fr; }
+    @media (max-width: 560px) {
+      body { padding: 44px 18px 40px; }
+      header { margin-bottom: 28px; }
+      .counter b { font-size: 2rem; }
+      .grid { grid-template-columns: 1fr; gap: 14px; }
+      .card { min-height: 0; }
+      .card-top { margin-bottom: 18px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <span class="chip">🧰 共 <b id="toolCount">4</b> 个交互器</span>
-      <h1>🛠️ 我的交互工具箱</h1>
-      <p class="subtitle">选择一个交互器，点击卡片进入全屏交互操作</p>
+      <div>
+        <div class="eyebrow">Interactive Toolbox</div>
+        <h1>我的交互工具箱<span class="dot"></span></h1>
+        <p class="subtitle">选择一个交互器，点击卡片进入全屏交互操作</p>
+      </div>
+      <div class="counter"><b id="toolCount">4</b>个交互器</div>
     </header>
 
     <main class="grid">
       <!-- 机构运动仿真器入口 -->
       <a class="card card-mechanism" href="tool1.html">
-        <span class="icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94a7.07 7.07 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.61l-1.92-3.32a.5.5 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.49.49 0 0 0-.48-.41h-3.84a.49.49 0 0 0-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.5.5 0 0 0-.59.22L2.74 8.87a.5.5 0 0 0 .12.61l2.03 1.58a7.07 7.07 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.5.5 0 0 0-.12-.61l-2.03-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>
-        </span>
-        <div>
+        <div class="card-top">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span class="idx"></span>
+        </div>
+        <div class="card-body">
           <h3>机构运动仿真器</h3>
           <p>机构的运动过程可视化演示</p>
         </div>
-        <span class="go">进入全屏操作 <span class="arrow">→</span></span>
+        <div class="card-foot">
+          <span class="tag">力学 · 运动</span>
+          <span class="go">进入 <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+        </div>
       </a>
 
       <!-- 初等函数仿真器入口 -->
       <a class="card card-function" href="basic-elementary-functions.html">
-        <span class="icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v15h15"/><path d="M7.5 16c1.6-7 4-7 5.6 0s4 7 5.6 0"/></svg>
-        </span>
-        <div>
+        <div class="card-top">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M7 16c1.6-7 3.6-7 5.2 0s3.6 7 5.2 0"/></svg>
+          </span>
+          <span class="idx"></span>
+        </div>
+        <div class="card-body">
           <h3>初等函数仿真器</h3>
           <p>绘制并探索初等函数的图像</p>
         </div>
-        <span class="go">进入全屏操作 <span class="arrow">→</span></span>
+        <div class="card-foot">
+          <span class="tag">函数 · 图像</span>
+          <span class="go">进入 <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+        </div>
       </a>
 
       <!-- 不等式交互器入口 -->
       <a class="card card-inequality" href="inequality.html">
-        <span class="icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 19L19 5"/><path d="M5 9h14"/><path d="M5 15h14"/></svg>
-        </span>
-        <div>
+        <div class="card-top">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 5L7 10l10 5"/><path d="M7 19h10"/></svg>
+          </span>
+          <span class="idx"></span>
+        </div>
+        <div class="card-body">
           <h3>不等式交互器</h3>
           <p>基本不等式的几何证明与互动探究</p>
         </div>
-        <span class="go">进入全屏操作 <span class="arrow">→</span></span>
+        <div class="card-foot">
+          <span class="tag">代数 · 证明</span>
+          <span class="go">进入 <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+        </div>
       </a>
 
       <!-- 集合与区间交互器入口 -->
       <a class="card card-set" href="set-and-interval.html">
-        <span class="icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
-        </span>
-        <div>
+        <div class="card-top">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/></svg>
+          </span>
+          <span class="idx"></span>
+        </div>
+        <div class="card-body">
           <h3>集合与区间</h3>
           <p>集合的 Venn 图与数轴区间可视化</p>
         </div>
-        <span class="go">进入全屏操作 <span class="arrow">→</span></span>
+        <div class="card-foot">
+          <span class="tag">集合 · 数轴</span>
+          <span class="go">进入 <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+        </div>
+      </a>
+
+      <!-- 指数与对数函数交互器入口 -->
+      <a class="card card-log" href="logarithmic-function.html">
+        <div class="card-top">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M6 18.5c5-.3 8.5-3.5 12-13"/><path d="M8 19.5c1.2-6 3.6-9 11-10" stroke-dasharray="2 2.6"/></svg>
+          </span>
+          <span class="idx"></span>
+        </div>
+        <div class="card-body">
+          <h3>指数与对数函数</h3>
+          <p>指数函数与对数函数的图像与性质探究</p>
+        </div>
+        <div class="card-foot">
+          <span class="tag">函数 · 指对</span>
+          <span class="go">进入 <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span>
+        </div>
       </a>
     </main>
+
+    <footer>
+      <span>点击任意卡片 · 全屏进入</span>
+      <span>y = f(x)</span>
+    </footer>
   </div>
 
   <script>
     // 自动统计交互器数量，以后新增卡片无需手动改这里的数字
     document.getElementById('toolCount').textContent = document.querySelectorAll('.card').length;
+
+    // 卡片柔光跟随鼠标位置
+    document.querySelectorAll('.card').forEach(function (card) {
+      card.addEventListener('pointermove', function (e) {
+        var r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
+    });
   </script>
 </body>
 </html>
